@@ -1,0 +1,161 @@
+
+User
+Vehicle
+Part
+Bill
+Job_card(service record)
+
+
+🔧 BACKEND – SPRING BOOT (PRODUCTION STYLE)
+backend/
+├── src/main/java/com/garage/
+│
+│   ├── GarageApplication.java
+│
+│   ├── config/                 # App configs
+│   │   ├── CorsConfig.java
+│   │   ├── SecurityConfig.java
+│   │   ├── SwaggerConfig.java
+│   │   └── FileUploadConfig.java
+│
+│   ├── controller/             # REST APIs
+│   │   ├── AuthController.java
+│   │   ├── CustomerController.java
+│   │   ├── VehicleController.java
+│   │   ├── JobCardController.java
+│   │   ├── ServiceController.java
+│   │   ├── InventoryController.java
+│   │   ├── BillingController.java
+│   │   ├── StaffController.java
+│   │   └── ReportController.java
+│
+│   ├── service/                # Business Logic
+│   │   ├── AuthService.java
+│   │   ├── CustomerService.java
+│   │   ├── JobCardService.java
+│   │   ├── InventoryService.java
+│   │   ├── BillingService.java
+│   │   └── ReportService.java
+│
+│   ├── repository/             # Database layer
+│   │   ├── CustomerRepository.java
+│   │   ├── VehicleRepository.java
+│   │   ├── JobCardRepository.java
+│   │   ├── InventoryRepository.java
+│   │   ├── BillRepository.java
+│   │   └── StaffRepository.java
+│
+│   ├── model/                  # Entities
+│   │   ├── Customer.java
+│   │   ├── Vehicle.java
+│   │   ├── JobCard.java
+│   │   ├── ServiceRecord.java
+│   │   ├── InventoryItem.java
+│   │   ├── Bill.java
+│   │   ├── Staff.java
+│   │   └── Role.java
+│
+│   ├── dto/                    # Clean API data
+│   │   ├── LoginRequestDTO.java
+│   │   ├── JobCardDTO.java
+│   │   └── BillingDTO.java
+│
+│   ├── exception/
+│   │   ├── ResourceNotFoundException.java
+│   │   └── GlobalExceptionHandler.java
+│
+│   ├── util/
+│   │   ├── PdfGenerator.java
+│   │   ├── EmailService.java
+│   │   └── DateUtils.java
+│
+│   └── audit/
+│       └── AuditLog.java
+│
+├── src/main/resources/
+│   ├── application.yml
+│   ├── data.sql
+│   └── schema.sql
+│
+├── pom.xml
+
+
+
+
+🎨 FRONTEND – REACT JS (ADMIN DASHBOARD STYLE)
+frontend/
+├── public/
+│
+├── src/
+│   ├── api/                     # Axios calls
+│   │   ├── authApi.js
+│   │   ├── customerApi.js
+│   │   ├── jobCardApi.js
+│   │   ├── inventoryApi.js
+│   │   └── reportApi.js
+│
+│   ├── layouts/                 # Page layouts
+│   │   ├── AdminLayout.jsx
+│   │   └── AuthLayout.jsx
+│
+│   ├── components/              # Reusable UI
+│   │   ├── Navbar.jsx
+│   │   ├── Sidebar.jsx
+│   │   ├── Table.jsx
+│   │   ├── StatusBadge.jsx
+│   │   └── ConfirmDialog.jsx
+│
+│   ├── pages/
+│   │   ├── auth/
+│   │   │   └── Login.jsx
+│   │   │
+│   │   ├── dashboard/
+│   │   │   └── Dashboard.jsx
+│   │   │
+│   │   ├── customers/
+│   │   │   └── Customers.jsx
+│   │   │
+│   │   ├── jobcards/
+│   │   │   └── JobCards.jsx
+│   │   │
+│   │   ├── inventory/
+│   │   │   └── Inventory.jsx
+│   │   │
+│   │   ├── billing/
+│   │   │   └── Billing.jsx
+│   │   │
+│   │   └── reports/
+│   │       └── Reports.jsx
+│
+│   ├── context/
+│   │   └── AuthContext.jsx
+│
+│   ├── routes/
+│   │   └── AppRoutes.jsx
+│
+│   ├── hooks/
+│   │   └── useAuth.js
+│
+│   ├── utils/
+│   │   ├── formatDate.js
+│   │   └── constants.js
+│
+│   ├── styles/
+│   │   └── theme.css
+│
+│   ├── App.js
+│   └── index.js
+│
+├── package.json
+└── .env
+
+======================================================================
+📦 DATABASE (REALISTIC TABLES)
+Customer          service_record             inventory        roles
+Vehicle           billing                    staff         audit_logs
+job_card
+
+
+links:
+Customer → Vehicle → Services → Spare Parts → Bill
+
