@@ -1,9 +1,19 @@
 package com.danny.Garage.Management.Application.dto;
 
+import com.danny.Garage.Management.Application.entity.Role;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Builder
 public class UserDTO{
     private Long id;
 
@@ -23,7 +33,7 @@ public class UserDTO{
     private String email;
 
     @NotBlank(message = "Role not blank")
-    private String role;
+    private Role role;
 
     @NotBlank(message = "Phone number is required")
     @Size(max = 10, min=10)
