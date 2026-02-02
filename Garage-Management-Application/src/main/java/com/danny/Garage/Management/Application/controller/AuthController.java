@@ -1,5 +1,7 @@
 package com.danny.Garage.Management.Application.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -7,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
+import com.danny.Garage.Management.Application.dto.UserDTO;
 import com.danny.Garage.Management.Application.entity.User;
 import com.danny.Garage.Management.Application.service.UserService;
 import com.danny.Garage.Management.Application.utils.JwtUtils;
@@ -41,6 +44,16 @@ public class AuthController {
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody UserDTO dto) {
+        if (userService.existsByUsername(dto.getUsername())) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "Username already exists"));
+        }
+        User savedUser = userService.saveUser(dto);
+        return ResponseEntity.ok(Map.of("message", "User registered", "userId", savedUser.getId()));
     }
     
     static class LoginRequest {

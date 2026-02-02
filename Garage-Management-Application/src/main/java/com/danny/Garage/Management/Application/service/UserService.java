@@ -26,7 +26,7 @@ public class UserService {
     public User saveUser(UserDTO dto){
         dto.setPassword(passwordEncoder.encode(dto.getPassword()));
         if(dto.getRole()== null){
-            dto.setRole(Role.ROLE_USER);
+            dto.setRole(Role.USER);
         }
         User user = toentity(dto);
         return userRepository.save(user);
@@ -100,7 +100,7 @@ public static User toentity(UserDTO dto){
         .username(dto.getUsername())
         .email(dto.getEmail())
         .password(dto.getPassword())
-        .role(dto.getRole() != null ? dto.getRole() : Role.ROLE_USER)
+        .role(dto.getRole() != null ? dto.getRole() : Role.USER)
         .phone(dto.getPhone())
         .build();
 }
