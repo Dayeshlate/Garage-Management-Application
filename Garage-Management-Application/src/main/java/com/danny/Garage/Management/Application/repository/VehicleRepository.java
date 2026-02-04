@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.danny.Garage.Management.Application.entity.Vehicle;
-import com.danny.Garage.Management.Application.entity.VehicleStatus;
+import com.danny.Garage.Management.Application.entity.JobStatus;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
@@ -18,7 +18,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     boolean existsById(Long id);
 
-    List<Vehicle> findByStatus(VehicleStatus status);
+    List<Vehicle> findByStatus(JobStatus status);
 
     List<Vehicle> findByvehicleType(String vehicleType);
 }

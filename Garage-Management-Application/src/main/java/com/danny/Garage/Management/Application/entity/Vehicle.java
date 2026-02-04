@@ -64,9 +64,6 @@ public class Vehicle {
     private LocalDateTime expectedTime;
 
     private LocalDateTime deliveryTime;
-
-    @Enumerated(EnumType.STRING)
-    private VehicleStatus status;
     
     @Column(nullable = false)
     private String ownerName;

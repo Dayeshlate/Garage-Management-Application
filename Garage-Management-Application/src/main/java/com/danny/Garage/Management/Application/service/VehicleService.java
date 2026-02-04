@@ -25,7 +25,6 @@ public class VehicleService {
             .arrivalTime(dto.getArrivalTime())
             .expectedTime(dto.getExpectedTime())
             .deliveryTime(dto.getDeliveryTime())
-            .status(dto.getStatus())
             .ownerName(dto.getOwnerName())
             .build();
 
@@ -44,7 +43,6 @@ public class VehicleService {
             .arrivalTime(entity.getArrivalTime())
             .expectedTime(entity.getExpectedTime())
             .deliveryTime(entity.getDeliveryTime())
-            .status(entity.getStatus())
             .ownerName(entity.getOwnerName())
             .build();
     }

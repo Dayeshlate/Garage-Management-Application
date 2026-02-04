@@ -1,6 +1,6 @@
 package com.danny.Garage.Management.Application.entity;
 
-public enum VehicleStatus {
+public enum JobStatus {
 
     ARRIVED,
     IN_SERVICE,

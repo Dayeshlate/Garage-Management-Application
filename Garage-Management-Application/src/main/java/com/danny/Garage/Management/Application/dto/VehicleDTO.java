@@ -2,7 +2,7 @@ package com.danny.Garage.Management.Application.dto;
 
 import java.time.LocalDateTime;
 
-import com.danny.Garage.Management.Application.entity.VehicleStatus;
+import com.danny.Garage.Management.Application.entity.JobStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +26,5 @@ public class VehicleDTO {
     private LocalDateTime arrivalTime;
     private LocalDateTime expectedTime;
     private LocalDateTime deliveryTime;
-    private VehicleStatus status;
     private String ownerName;
 }

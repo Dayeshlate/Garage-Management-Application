@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,6 +24,9 @@ public class JobCard {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    private JobStatus status;
+
     @ManyToOne
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
@@ -32,12 +37,5 @@ public class JobCard {
         inverseJoinColumns = @JoinColumn(name = "sparepart_id")
     )
     private Set<SparePart> spareParts = new HashSet<>();
-
-    @OneToOne(
-        mappedBy = "jobCard",
-        cascade = CascadeType.ALL,
-        fetch = FetchType.LAZY
-    )
-    private Bill bill;
 
 }
