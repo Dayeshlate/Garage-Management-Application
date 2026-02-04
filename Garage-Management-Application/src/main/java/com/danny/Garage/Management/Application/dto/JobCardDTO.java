@@ -4,6 +4,15 @@ import java.util.List;
 
 import com.danny.Garage.Management.Application.entity.JobStatus;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Builder
 public class JobCardDTO {
     
     private Long id;

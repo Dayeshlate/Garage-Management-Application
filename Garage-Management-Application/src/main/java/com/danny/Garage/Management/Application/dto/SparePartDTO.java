@@ -1,6 +1,7 @@
 package com.danny.Garage.Management.Application.dto;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,17 +12,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class BillDTO {
+public class SparePartDTO {
+    
     private Long id;
 
-    private LocalDateTime billDate;
+    private String partname;
 
-    private Long labourAmount;
+    private Double partNumber;
 
-    private String paymentMode;
+    private BigDecimal partPrice;
 
-    private Double totalBill;
+    private String manufacture;
 
-    private Long jobCard_id;
+    private Set<Long> JobCardIds;
+
 
 }

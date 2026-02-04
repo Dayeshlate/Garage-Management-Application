@@ -1,6 +1,6 @@
 package com.danny.Garage.Management.Application.entity;
 
-import java.util.HashMap;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,13 +26,13 @@ public class SparePart {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
-    private String partname;
+    private String partName;
 
-    private Double partnumber;
+    private Double partNumber;
 
-    private Long price;
+    private BigDecimal partPrice;
 
     private String manufacture;
 
