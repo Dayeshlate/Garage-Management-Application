@@ -1,6 +1,7 @@
 package com.danny.Garage.Management.Application.dto;
 
 import java.util.List;
+import java.util.Set;
 
 import com.danny.Garage.Management.Application.entity.JobStatus;
 
@@ -21,5 +22,5 @@ public class JobCardDTO {
 
     private Long Vehicle_id;
 
-    private List<Long> SparePart_id;
+    private Set<Long> SparePart_id;
 }

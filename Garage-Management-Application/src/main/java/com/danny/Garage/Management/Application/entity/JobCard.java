@@ -1,10 +1,9 @@
 package com.danny.Garage.Management.Application.entity;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -15,9 +14,18 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "jobCards")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Data
 public class JobCard {
     
     @Id
@@ -31,6 +39,8 @@ public class JobCard {
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
 
+    @ManyToMany(fetch = FetchType.LAZY,
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(
         name = "jobcard_sparepart",
         joinColumns = @JoinColumn(name = "jobcard_id"),

@@ -1,6 +1,7 @@
 package com.danny.Garage.Management.Application.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -16,7 +17,7 @@ public class SparePartDTO {
     
     private Long id;
 
-    private String partname;
+    private String partName;
 
     private Double partNumber;
 
@@ -24,7 +25,7 @@ public class SparePartDTO {
 
     private String manufacture;
 
-    private Set<Long> JobCardIds;
+    private Set<Long> jobCardIds;
 
 
 }
