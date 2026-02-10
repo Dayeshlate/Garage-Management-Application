@@ -28,7 +28,7 @@ public class UserController {
     @PutMapping("/update/{id}")
     public ResponseEntity<Map<String, Object>> update(@RequestBody UserDTO dto,@PathVariable Long id){
         User updatUser = userService.updateUser(dto, id);
-        UserDTO updateDTO = userService.todto(updatUser);
+        UserDTO updateDTO = userService.toDto(updatUser, null);
         return ResponseEntity.ok(
             Map.of(
                 "message","User update succesfully",

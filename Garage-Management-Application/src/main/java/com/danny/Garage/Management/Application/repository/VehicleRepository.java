@@ -2,6 +2,7 @@ package com.danny.Garage.Management.Application.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -21,5 +22,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByStatus(JobStatus status);
 
     List<Vehicle> findByvehicleType(String vehicleType);
+
+    List<Vehicle> findByUserId(Long id);
+
 }
 

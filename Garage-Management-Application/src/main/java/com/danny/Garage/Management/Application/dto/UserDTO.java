@@ -1,5 +1,7 @@
 package com.danny.Garage.Management.Application.dto;
 
+import java.util.List;
+
 import com.danny.Garage.Management.Application.entity.Role;
 
 import jakarta.validation.constraints.Email;
@@ -38,4 +40,6 @@ public class UserDTO{
     @NotBlank(message = "Phone number is required")
     @Size(max = 10, min=10)
     private String phone;
+
+    private List<Long> vehicle_ids;
 } 

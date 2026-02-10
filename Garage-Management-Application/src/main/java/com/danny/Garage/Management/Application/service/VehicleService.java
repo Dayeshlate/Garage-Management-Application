@@ -9,10 +9,22 @@ import com.danny.Garage.Management.Application.repository.VehicleRepository;
 @Service
 public class VehicleService {
 
-    private VehicleRepository vehicleRpository;
+    private VehicleRepository vehicleRepository;
+
+    public VehicleService(VehicleRepository vehicleRepository){
+        this.vehicleRepository = vehicleRepository;
+    }
+
+    public VehicleDTO createVehicle(VehicleDTO dto){
+        Vehicle vehicle=toEntity(dto);
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+        return toDTO(savedVehicle);
+    }
+
+    
 
 
-    public static Vehicle toEntity(VehicleDTO dto){
+    public Vehicle toEntity(VehicleDTO dto){
         return Vehicle.builder()
             .id(dto.getId())
             .vehicleNumber(dto.getVehicleNumber())
@@ -30,7 +42,7 @@ public class VehicleService {
 
     }
 
-    public static VehicleDTO toDTO(Vehicle entity){
+    public VehicleDTO toDTO(Vehicle entity){
         return VehicleDTO.builder()
             .id(entity.getId())
             .vehicleNumber(entity.getVehicleNumber())
