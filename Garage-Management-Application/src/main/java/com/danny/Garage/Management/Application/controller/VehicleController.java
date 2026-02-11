@@ -42,10 +42,6 @@ public class VehicleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(vehicleDTO);
     }
     
-    @GetMapping("/get")
-    public String getMethodName(@RequestParam String param) {
-        return new String();
-    }
     
     @GetMapping("/getByStatus")
     public ResponseEntity<List<VehicleDTO>> getByStatus(@RequestParam JobStatus status) {
