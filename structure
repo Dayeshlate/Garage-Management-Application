@@ -158,3 +158,97 @@ job_card
 
 links:
 Customer → Vehicle → Services → Spare Parts → Bill
+
+
+
+=======================================================================
+
+USER INTERFACE
+
+1) Dashboard
+   - User all vehicles 
+   - active service
+   - total invoice 
+
+2) Track service
+    - Search by vehicle number or customer name
+    - View service history and current status
+
+3) My vehicles
+   - List of vehicles owned by the customer
+   - Option to add new vehicle
+
+4) my invoices
+   - Total spend 
+   - paid bill
+   - History of bills with details
+
+
+ADMIN INTERFACE
+
+1) Dashboard
+   - Total customers in last 30 days
+   - Active jobs in last 30 days
+   - vehicle serviced in last 30 days
+   - Revenue overview in last 30 days
+   - Recent Job cards in last 30 days
+   - Stock alerts in last 30 days
+
+2) Customer 
+    - total customers
+    - add new customer
+    - total vehicles
+    - search customer by name or phone number
+    - All customer 
+
+3) Vehicles
+    - total vehicles
+    - add new vehicle
+    - search vehicle by number or customer name
+    - All vehicles
+    - total service 
+
+4) Job Cards
+    - total job cards
+    - add new job card
+    - search job card by vehicle number or customer name
+    - All job cards
+    - pending job cards
+    - in progress job cards
+    - completed job cards
+    
+5) Inventory
+    - total inventory items
+    - add new inventory item
+    - search inventory by name or category
+    - All inventory items
+    - low stock items
+    - total stock value
+    - search by ctegarory
+
+6) Billing
+    - total revenue
+    - pending bills
+    - overdue bills
+    - search bills by customer name or vehicle number
+    - All bills
+    - total invoices
+    - add invoice
+
+7) Reports & Analytics
+    - total revenue in last 30 days
+    - total customers in last 30 days
+    - total vehicles serviced in last 30 days
+
+
+
+Customer
+Vehicle
+InventoryItem
+JobCard
+Invoice
+User
+Role
+ServiceLine
+Supplier
+Payment

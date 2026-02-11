@@ -71,7 +71,7 @@ public class Vehicle {
     private User user;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "vehicle", fetch = FetchType.LAZY)
-    private List<JobCard> jobcard;
+    private List<JobCard> jobCard;
 
     @PrePersist
     public void onCreate(){
