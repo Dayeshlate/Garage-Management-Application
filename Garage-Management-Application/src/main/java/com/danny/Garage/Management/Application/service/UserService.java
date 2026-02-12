@@ -2,7 +2,6 @@ package com.danny.Garage.Management.Application.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -65,7 +64,19 @@ public class UserService {
         return toDto(user, null);
     }
 
-    // UPDATE USER
+    public User getCurrentUserObject() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        User user = (User) authentication.getPrincipal();
+        return user;
+    }
+
     public User updateUser(UserDTO dto, Long id) {
 
         User existUser = userRepository.findById(id)
@@ -88,14 +99,25 @@ public class UserService {
         return vehicleRepository.findByUserId(currentUser.getId());
     }
 
+    private List<Long> getVehicleIdsForUser(User user) {
+
+    return vehicleRepository.findByUserId(user.getId())
+            .stream()
+            .map(Vehicle::getId)
+            .toList();
+}
+
+
+
     public UserDTO toDto(User user, List<Long> vehicleIds) {
+
         return UserDTO.builder()
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .role(user.getRole())
-                .vehicle_ids(vehicleIds)
+                .vehicle_ids(getVehicleIdsForUser(user))
                 .username(user.getUsername())
                 .build();
     }

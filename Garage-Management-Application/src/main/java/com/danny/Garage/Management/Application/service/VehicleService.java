@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.danny.Garage.Management.Application.dto.VehicleDTO;
 import com.danny.Garage.Management.Application.entity.JobStatus;
+import com.danny.Garage.Management.Application.entity.User;
 import com.danny.Garage.Management.Application.entity.Vehicle;
 import com.danny.Garage.Management.Application.repository.VehicleRepository;
 
@@ -16,13 +17,17 @@ import com.danny.Garage.Management.Application.repository.VehicleRepository;
 public class VehicleService {
 
     private VehicleRepository vehicleRepository;
+    private final UserService userService;
 
-    public VehicleService(VehicleRepository vehicleRepository){
+    public VehicleService(VehicleRepository vehicleRepository, UserService userService){
         this.vehicleRepository = vehicleRepository;
+        this.userService = userService;
     }
 
     public VehicleDTO createVehicle(VehicleDTO dto){
         Vehicle vehicle=toEntity(dto);
+        User user = userService.getCurrentUserObject();
+        vehicle.setUser(user);
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return toDTO(savedVehicle);
     }
