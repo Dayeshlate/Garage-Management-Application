@@ -2,6 +2,9 @@ package com.danny.Garage.Management.Application.entity;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,8 +38,9 @@ public class JobCard {
     @Enumerated(EnumType.STRING)
     private JobStatus status;
 
+    @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "vehicle_id")
+    @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
     @ManyToMany(fetch = FetchType.LAZY,

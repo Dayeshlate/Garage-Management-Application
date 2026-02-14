@@ -1,9 +1,6 @@
 package com.danny.Garage.Management.Application.dto;
 
 import java.time.LocalDateTime;
-
-import com.danny.Garage.Management.Application.entity.JobStatus;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

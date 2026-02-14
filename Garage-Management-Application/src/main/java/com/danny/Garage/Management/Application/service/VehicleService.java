@@ -2,12 +2,13 @@ package com.danny.Garage.Management.Application.service;
 
 import java.util.List;
 
-import org.springframework.boot.data.autoconfigure.web.DataWebProperties.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.danny.Garage.Management.Application.dto.JobCardDTO;
 import com.danny.Garage.Management.Application.dto.VehicleDTO;
+import com.danny.Garage.Management.Application.entity.JobCard;
 import com.danny.Garage.Management.Application.entity.JobStatus;
 import com.danny.Garage.Management.Application.entity.User;
 import com.danny.Garage.Management.Application.entity.Vehicle;
@@ -28,6 +29,10 @@ public class VehicleService {
         Vehicle vehicle=toEntity(dto);
         User user = userService.getCurrentUserObject();
         vehicle.setUser(user);
+        JobCard jobCard = new JobCard();
+        jobCard.setVehicle(vehicle);
+        jobCard.setStatus(JobStatus.ARRIVED);
+        vehicle.setJobCard(List.of(jobCard));
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return toDTO(savedVehicle);
     }

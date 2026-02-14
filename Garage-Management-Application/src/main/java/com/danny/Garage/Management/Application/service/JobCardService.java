@@ -1,11 +1,14 @@
 package com.danny.Garage.Management.Application.service;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.danny.Garage.Management.Application.dto.JobCardDTO;
 import com.danny.Garage.Management.Application.entity.JobCard;
+import com.danny.Garage.Management.Application.entity.JobStatus;
 import com.danny.Garage.Management.Application.entity.SparePart;
 import com.danny.Garage.Management.Application.entity.Vehicle;
 import com.danny.Garage.Management.Application.repository.JobCardRepository;
@@ -15,14 +18,59 @@ import com.danny.Garage.Management.Application.repository.SparePartRepository;
 public class JobCardService {
     private SparePartRepository sparePartRepository;
     private JobCardRepository jobCardRepository;
+    private UserService userService;
 
-    public JobCardService(SparePartRepository sparePartRepository , JobCardRepository jobCardRepository){
+    public JobCardService(SparePartRepository sparePartRepository , JobCardRepository jobCardRepository,UserService userService){
         this.jobCardRepository = jobCardRepository;
         this.sparePartRepository = sparePartRepository;
+        this.userService = userService;
     }
 
+    public JobCardDTO updateJobCard(JobCardDTO dto) {
+    JobCard jobCard = jobCardRepository.findById(dto.getId())
+            .orElseThrow(() -> new RuntimeException("JobCard not found"));
+    if (dto.getJobStatus() != null) {
+        jobCard.setStatus(dto.getJobStatus());
+    }
+    if (dto.getSparePart_id() != null) {
+        Set<SparePart> spareParts = sparePartRepository
+                .findAllById(dto.getSparePart_id())
+                .stream()
+                .collect(Collectors.toSet());
 
-   
+        jobCard.setSpareParts(spareParts);
+    }
+    JobCard saved = jobCardRepository.save(jobCard);
+    return toDto(saved);
+    }
+
+    public Long getAllJobCardsCount(){
+        Long allJobCards = (long) jobCardRepository.findByStatusNot(JobStatus.DELIVERED).size();
+        return allJobCards;
+    }
+
+    public List<JobCardDTO> getAllActiveJobCardForUser(){
+        Long id = userService.getCurrentUser().getId();
+        List<JobCard> alljobcards = jobCardRepository.findByVehicleUserIdAndStatusNot(id,JobStatus.DELIVERED);
+        return alljobcards.stream().map(this::toDto).toList();
+    }
+    
+    public Long getAllActiveServicesForUser(){
+        Long currentUserId = userService.getCurrentUserObject().getId();
+        return jobCardRepository.countByUserIdAndStatusNot(currentUserId, JobStatus.DELIVERED);
+    }
+
+    public List<JobCardDTO> getAllByStatus(JobStatus status){
+        List<JobCard> jobCards = jobCardRepository.findByStatusNot(status);
+
+        return jobCards.stream()
+                .map(this::toDto).toList();
+    }
+
+    public List<JobCardDTO> getAllJobCards(){
+        List<JobCard> allJobCards = jobCardRepository.findByStatusNot(JobStatus.DELIVERED);
+        return allJobCards.stream().map(this::toDto).toList();
+    }
     
 
     public JobCard toEntity(JobCardDTO dto, Vehicle vehicle,Set<SparePart> spareParts){
@@ -34,12 +82,17 @@ public class JobCardService {
             .build();
     }
 
-    public JobCardDTO toDto(JobCard entity, Long vehicle_id, Set<Long> spareParts_id){
-        return JobCardDTO.builder()
+    public JobCardDTO toDto(JobCard entity) {
+    return JobCardDTO.builder()
             .id(entity.getId())
-            .Vehicle_id(vehicle_id)
+            .Vehicle_id(entity.getVehicle().getId())
             .JobStatus(entity.getStatus())
-            .SparePart_id(spareParts_id)
+            .SparePart_id(
+                    entity.getSpareParts()
+                            .stream()
+                            .map(SparePart::getId)
+                            .collect(Collectors.toSet())
+            )
             .build();
-    }
+}
 }
