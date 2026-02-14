@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.danny.Garage.Management.Application.dto.VehicleDTO;
-import com.danny.Garage.Management.Application.entity.JobCard;
 import com.danny.Garage.Management.Application.entity.JobStatus;
 import com.danny.Garage.Management.Application.service.VehicleService;
 

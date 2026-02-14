@@ -1,9 +1,9 @@
 package com.danny.Garage.Management.Application.entity;
 
 import java.time.LocalDateTime;
-
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -36,8 +36,13 @@ public class Bill {
 
     private Double totalPayment;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "jobcard_id", unique = true, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BillStatus billStatus;
+
+    private Double sparePartAmount;
+
+    @OneToOne
+    @JoinColumn(name = "jobcard_id")
     private JobCard jobCard;
 
     @PrePersist

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
-@RequestMapping("/jobCard")
+@RequestMapping("/user/jobCard")
 public class JobCardController {
     
     private JobCardService jobCardService;

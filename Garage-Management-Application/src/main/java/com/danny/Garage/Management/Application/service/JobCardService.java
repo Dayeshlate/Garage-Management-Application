@@ -1,5 +1,6 @@
 package com.danny.Garage.Management.Application.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -7,6 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.danny.Garage.Management.Application.dto.JobCardDTO;
+import com.danny.Garage.Management.Application.entity.Bill;
+import com.danny.Garage.Management.Application.entity.BillStatus;
 import com.danny.Garage.Management.Application.entity.JobCard;
 import com.danny.Garage.Management.Application.entity.JobStatus;
 import com.danny.Garage.Management.Application.entity.SparePart;
@@ -29,9 +32,26 @@ public class JobCardService {
     public JobCardDTO updateJobCard(JobCardDTO dto) {
     JobCard jobCard = jobCardRepository.findById(dto.getId())
             .orElseThrow(() -> new RuntimeException("JobCard not found"));
-    if (dto.getJobStatus() != null) {
-        jobCard.setStatus(dto.getJobStatus());
-    }
+    if (dto.getJobStatus() == JobStatus.COMPLETED
+        && jobCard.getBill() == null) {
+
+    Bill bill = new Bill();
+
+    bill.setJobCard(jobCard);
+
+    double spareTotal = jobCard.getSpareParts()
+            .stream()
+            .mapToDouble(SparePart::getPartPrice)
+            .sum();
+
+    bill.setSparePartAmount(spareTotal);
+    bill.setLabourAmount(null);
+    bill.setTotalPayment(spareTotal); 
+    bill.setBillDate(LocalDateTime.now());
+    bill.setBillStatus(BillStatus.PENDING_LABOUR);
+
+    jobCard.setBill(bill);
+}
     if (dto.getSparePart_id() != null) {
         Set<SparePart> spareParts = sparePartRepository
                 .findAllById(dto.getSparePart_id())

@@ -17,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,13 +44,11 @@ public class JobCard {
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
-    @ManyToMany(fetch = FetchType.LAZY,
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JoinTable(
-        name = "jobcard_sparepart",
-        joinColumns = @JoinColumn(name = "jobcard_id"),
-        inverseJoinColumns = @JoinColumn(name = "sparepart_id")
-    )
+    @OneToOne(mappedBy = "jobCard", cascade = CascadeType.ALL)
+    private Bill bill;
+
+    @ManyToMany(fetch = FetchType.LAZY,cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(name = "jobcard_sparepart",joinColumns = @JoinColumn(name = "jobcard_id"),inverseJoinColumns = @JoinColumn(name = "sparepart_id"))
     private Set<SparePart> spareParts = new HashSet<>();
 
 }

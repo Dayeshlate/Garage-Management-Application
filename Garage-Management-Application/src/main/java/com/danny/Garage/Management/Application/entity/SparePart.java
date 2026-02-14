@@ -32,7 +32,7 @@ public class SparePart {
 
     private Double partNumber;
 
-    private BigDecimal partPrice;
+    private Double partPrice;
 
     private String manufacture;
 

@@ -2,6 +2,8 @@ package com.danny.Garage.Management.Application.dto;
 
 import java.time.LocalDateTime;
 
+import com.danny.Garage.Management.Application.entity.BillStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +24,10 @@ public class BillDTO {
 
     private Double totalBill;
 
+    private BillStatus billStatus;
+
     private Long jobCard_id;
+
+    private Double sparePartAmount;
 
 }

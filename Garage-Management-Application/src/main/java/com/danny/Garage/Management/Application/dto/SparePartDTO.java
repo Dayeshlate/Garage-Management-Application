@@ -20,7 +20,7 @@ public class SparePartDTO {
 
     private Double partNumber;
 
-    private BigDecimal partPrice;
+    private Double partPrice;
 
     private String manufacture;
 
