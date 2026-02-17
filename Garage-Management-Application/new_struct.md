@@ -5,7 +5,7 @@ This document describes exactly how to make the existing  Spring Boot backend ma
 ## Global rules
 - Base API path: `/api` (controllers should be annotated with `@RequestMapping("/api/...")`).
 - ID type: String UUIDs in JSON (store as UUID or String in DB).
-- Dates: ISO-8601 strings (use `java.time.OffsetDateTime` / `Instant` and Jackson defaults).
+- Dates: ISO-8601 strings    (use `java.time.OffsetDateTime` / `Instant` and Jackson defaults).
 - Content-Type: `application/json`.
 - Auth: expect header `Authorization: Bearer <token>`; keep JWT filter active and allow `/api/auth/**` anonymously.
 - Create responses: `201 Created` with created entity in body and optional `Location` header.
