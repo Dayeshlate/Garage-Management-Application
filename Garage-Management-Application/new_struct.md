@@ -1,6 +1,6 @@
 # Backend → Frontend Mapping for Garage Assistant
 
-This document describes exactly how to make the existing Spring Boot backend match the frontend clients in this workspace.
+This document describes exactly how to make the existing  Spring Boot backend match the frontend clients in this workspace.
 
 ## Global rules
 - Base API path: `/api` (controllers should be annotated with `@RequestMapping("/api/...")`).
