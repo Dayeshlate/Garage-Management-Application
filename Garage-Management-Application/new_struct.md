@@ -119,4 +119,3 @@ This document describes exactly how to make the existing  Spring Boot backend ma
 - Produce a patch to add alias mappings in your current controllers (quick rename/alias).
 
 ---
-File created to help align backend with frontend. If you want a direct patch to your Java sources to add exact `/api/*` mappings and DTO renames, tell me which option above and I will apply the changes.
