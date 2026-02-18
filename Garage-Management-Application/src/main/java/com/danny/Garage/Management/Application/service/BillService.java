@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.danny.Garage.Management.Application.dto.BillDTO;
 import com.danny.Garage.Management.Application.dto.LabourUpdateDTO;
+import com.danny.Garage.Management.Application.dto.UserDTO;
 import com.danny.Garage.Management.Application.entity.Bill;
 import com.danny.Garage.Management.Application.entity.BillStatus;
 import com.danny.Garage.Management.Application.entity.JobCard;
@@ -19,10 +20,11 @@ public class BillService {
 
     private final BillRepository billRepository;
     private final JobCardRepository jobCardRepository;
+    private final UserService userService;
 
-    public BillService(BillRepository billRepository,
-                       JobCardRepository jobCardRepository) {
+    public BillService(BillRepository billRepository,UserService userService, JobCardRepository jobCardRepository) {
         this.billRepository = billRepository;
+        this.userService = userService;
         this.jobCardRepository = jobCardRepository;
     }
 
@@ -64,6 +66,12 @@ public class BillService {
     public List<BillDTO> getAllBill(){
         List<BillDTO> allBillDTOs = billRepository.findAll().stream().map(this::toDTO).toList();
         return allBillDTOs;
+    }
+
+    public List<BillDTO> getAllBillForUser(){
+        UserDTO user = userService.getCurrentUser();
+        List<BillDTO> billDTOs = billRepository.findByJobCardVehicleUserId(user.getId()).stream().map(this::toDTO).toList();
+        return billDTOs;
     }
 
     public BillDTO toDTO(Bill entity) {
