@@ -80,7 +80,38 @@ public class AdminController {
         return ResponseEntity.ok(allJobCardDTOs);
     }
     
+    //======================================== Vehicle =================================================
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<List<VehicleDTO>> getMethodName(@PathVariable Long id) {
+        List<VehicleDTO> vehicles = vehicleService.getAllUserVehicles(id);
+        return ResponseEntity.ok(vehicles);
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<VehicleDTO> createVehicle(@RequestBody VehicleDTO dto) {
+        VehicleDTO vehicleDTO = vehicleService.createVehicle(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(vehicleDTO);
+    }
     
+    
+    @GetMapping("/getByStatus")
+    public ResponseEntity<List<VehicleDTO>> getByStatus(@RequestParam JobStatus status) {
+        List<VehicleDTO> vehicles =  vehicleService.getVehicleByStatus(status);
+        return ResponseEntity.ok(vehicles);
+   }
+
+   @GetMapping("/vehicle/update")
+   public ResponseEntity<VehicleDTO> updateVehicle(@RequestBody VehicleDTO dto) {
+       VehicleDTO vehicle = vehicleService.updateVehicle(dto);
+       return ResponseEntity.ok(vehicle);
+   }
+
+   @GetMapping("/vehicle/getAllBills")
+   public ResponseEntity<List<BillDTO>> getAllBills() {
+       List<BillDTO> billDTOs = billService.getAllBill();;
+       return ResponseEntity.ok(billDTOs);
+   }
     
    
    
