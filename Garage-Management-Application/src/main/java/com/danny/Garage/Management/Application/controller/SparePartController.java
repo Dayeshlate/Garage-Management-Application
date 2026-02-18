@@ -14,7 +14,7 @@ import com.danny.Garage.Management.Application.dto.SparePartDTO;
 import com.danny.Garage.Management.Application.service.SparePartService;
 
 @RestController
-@RequestMapping("/SparePart")
+@RequestMapping("admin/SparePart")
 public class SparePartController {
     
     private final SparePartService sparePartService;

@@ -10,6 +10,9 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 @RestController
@@ -33,5 +36,12 @@ public class JobCardController {
         List<JobCardDTO> allJobCardDTOs = jobCardService.getAllActiveJobCardForUser();
         return ResponseEntity.ok(allJobCardDTOs);
     }
+
+    @PostMapping("/update")
+    public ResponseEntity<JobCardDTO> updateJobCard(@RequestBody JobCardDTO dto) {
+        JobCardDTO jobCardDTO = jobCardService.updateJobCard(dto);
+        return ResponseEntity.ok(jobCardDTO);
+    }
+    
     
 }
