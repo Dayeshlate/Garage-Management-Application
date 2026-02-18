@@ -37,11 +37,6 @@ public class JobCardController {
         return ResponseEntity.ok(allJobCardDTOs);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<JobCardDTO> updateJobCard(@RequestBody JobCardDTO dto) {
-        JobCardDTO jobCardDTO = jobCardService.updateJobCard(dto);
-        return ResponseEntity.ok(jobCardDTO);
-    }
     
     
 }

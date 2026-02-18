@@ -2,30 +2,87 @@ package com.danny.Garage.Management.Application.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.danny.Garage.Management.Application.dto.BillDTO;
+import com.danny.Garage.Management.Application.dto.JobCardDTO;
 import com.danny.Garage.Management.Application.dto.LabourUpdateDTO;
+import com.danny.Garage.Management.Application.dto.VehicleDTO;
+import com.danny.Garage.Management.Application.entity.JobStatus;
+import com.danny.Garage.Management.Application.repository.BillRepository;
 import com.danny.Garage.Management.Application.service.BillService;
+import com.danny.Garage.Management.Application.service.JobCardService;
+import com.danny.Garage.Management.Application.service.VehicleService;
+
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/admin")
 public class AdminController {
 
-private BillService billService;
-    
-@GetMapping("/pending-labour")
-public List<BillDTO> getPendingBills() {
-    return billService.getPendingLabourBills();
-}
+    private VehicleService vehicleService;
+    private JobCardService jobCardService;
+    private BillService billService;
+    private BillRepository billRepository;
 
-@PutMapping("/update-labourbill")
-public void updateLabour(@RequestBody LabourUpdateDTO dto) {
-    billService.updateLabourAmount(dto);
-}
+    public AdminController(JobCardService jobCardService, BillService billService, VehicleService vehicleService){
+        this.jobCardService = jobCardService;
+        this.vehicleService = vehicleService;
+        this.billService = billService;
+    }
+
+    //================================== Bill =======================================================
+
+    @GetMapping("/pending-labour")
+    public List<BillDTO> getPendingBills() {
+        return billService.getPendingLabourBills();
+    }
+
+    @PutMapping("/update-labourbill")
+    public void updateLabour(@RequestBody LabourUpdateDTO dto) {
+        billService.updateLabourAmount(dto);
+    }
+
+
+    //================================== JobCard =======================================================
+
+
+    @PostMapping("/jobcard/update")
+    public ResponseEntity<JobCardDTO> updateJobCard(@RequestBody JobCardDTO dto) {
+        JobCardDTO jobCardDTO = jobCardService.updateJobCard(dto);
+        return ResponseEntity.ok(jobCardDTO);
+    }
+
+    @GetMapping("/jobcard/Active_count")
+    public ResponseEntity<Long> getAllActiveServiceCount() {
+        Long count = jobCardService.getAllJobCardsCount();
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/jobcard/getByStatus")
+    public ResponseEntity<List<JobCardDTO>> getJobCardByStatus(@RequestParam JobStatus jobStatus) {
+        List<JobCardDTO> jobcards = jobCardService.getAllByStatus(jobStatus);
+        return ResponseEntity.ok(jobcards);
+    }
+
+    @GetMapping("/jobcard/getAllJobCards")
+    public ResponseEntity<List<JobCardDTO>> getAllJobcards() {
+        List<JobCardDTO> allJobCardDTOs = jobCardService.getAllJobCards();
+        return ResponseEntity.ok(allJobCardDTOs);
+    }
+    
+    
+    
+   
+   
 
 }

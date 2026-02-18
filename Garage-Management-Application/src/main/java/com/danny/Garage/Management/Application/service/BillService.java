@@ -61,6 +61,11 @@ public class BillService {
 
     }
 
+    public List<BillDTO> getAllBill(){
+        List<BillDTO> allBillDTOs = billRepository.findAll().stream().map(this::toDTO).toList();
+        return allBillDTOs;
+    }
+
     public BillDTO toDTO(Bill entity) {
         return BillDTO.builder()
                 .id(entity.getId())

@@ -38,6 +38,12 @@ public class VehicleService {
         return toDTO(savedVehicle);
     }
 
+    public VehicleDTO updateVehicle(VehicleDTO dto){
+        Vehicle vehicle = toEntity(dto);
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+        return toDTO(savedVehicle);
+    }
+
 
     public List<VehicleDTO> getAllVehicles(){
         PageRequest pageRequest = PageRequest.of(0, 15,Sort.by(Sort.Direction.DESC, "arrivalTime"));
