@@ -83,8 +83,8 @@ public class AdminController {
     //======================================== Vehicle =================================================
 
     @GetMapping("/vehicle/get/{id}")
-    public ResponseEntity<List<VehicleDTO>> getMethodName(@PathVariable Long id) {
-        List<VehicleDTO> vehicles = vehicleService.getAllUserVehicles(id);
+    public ResponseEntity<VehicleDTO> getvehicle(@PathVariable Long id) {
+        VehicleDTO vehicles = vehicleService.getVehicleById(id);
         return ResponseEntity.ok(vehicles);
     }
 

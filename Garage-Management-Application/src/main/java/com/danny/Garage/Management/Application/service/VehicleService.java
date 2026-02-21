@@ -1,6 +1,7 @@
 package com.danny.Garage.Management.Application.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -80,6 +81,12 @@ public class VehicleService {
     public List<VehicleDTO> getVehicleByStatus(JobStatus status){
         return vehicleRepository.findDistinctByJobCard_Status(status).stream().map(this::toDTO).toList();
     }
+
+    public VehicleDTO getVehicleById(Long id){
+        Vehicle vehicle = vehicleRepository.findById(id).
+            orElseThrow(()-> new RuntimeException("Vehicle not found with id: "+id));
+        return toDTO(vehicle);
+        }
 
 
     public Vehicle toEntity(VehicleDTO dto){
