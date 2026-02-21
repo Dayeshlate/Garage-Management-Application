@@ -51,10 +51,13 @@ public class UserService {
         return userRepository.existsByUsername(username);
     }
 
+    public User findByEmail(String email){
+        return (User) userRepository.findByEmail(email);
+    }
+
     public UserDTO getCurrentUser() {
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
@@ -66,8 +69,7 @@ public class UserService {
 
     public User getCurrentUserObject() {
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
@@ -80,13 +82,16 @@ public class UserService {
     public User updateUser(UserDTO dto, Long id) {
 
         User existUser = userRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        if (dto.getEmail() != null) existUser.setEmail(dto.getEmail());
-        if (dto.getUsername() != null) existUser.setUsername(dto.getUsername());
-        if (dto.getName() != null) existUser.setName(dto.getName());
-        if (dto.getPhone() != null) existUser.setPhone(dto.getPhone());
+        if (dto.getEmail() != null)
+            existUser.setEmail(dto.getEmail());
+        if (dto.getUsername() != null)
+            existUser.setUsername(dto.getUsername());
+        if (dto.getName() != null)
+            existUser.setName(dto.getName());
+        if (dto.getPhone() != null)
+            existUser.setPhone(dto.getPhone());
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             existUser.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -101,13 +106,11 @@ public class UserService {
 
     private List<Long> getVehicleIdsForUser(User user) {
 
-    return vehicleRepository.findByUserId(user.getId())
-            .stream()
-            .map(Vehicle::getId)
-            .toList();
-}
-
-
+        return vehicleRepository.findByUserId(user.getId())
+                .stream()
+                .map(Vehicle::getId)
+                .toList();
+    }
 
     public UserDTO toDto(User user, List<Long> vehicleIds) {
 

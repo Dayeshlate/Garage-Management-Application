@@ -26,9 +26,22 @@ public class VehicleService {
     }
 
     @Transactional
-    public VehicleDTO createVehicle(VehicleDTO dto){
+    public VehicleDTO createVehicleByUser(VehicleDTO dto){
         Vehicle vehicle=toEntity(dto);
         User user = userService.getCurrentUserObject();
+        vehicle.setUser(user);
+        JobCard jobCard = new JobCard();
+        jobCard.setVehicle(vehicle);
+        jobCard.setStatus(JobStatus.ARRIVED);
+        vehicle.setJobCard(List.of(jobCard));
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+        return toDTO(savedVehicle);
+    }
+
+    @Transactional
+    public VehicleDTO createVehicleByAdmin(VehicleDTO dto){
+        Vehicle vehicle=toEntity(dto);
+        User user = (User) userService.findByEmail(dto.getUserEmail());
         vehicle.setUser(user);
         JobCard jobCard = new JobCard();
         jobCard.setVehicle(vehicle);

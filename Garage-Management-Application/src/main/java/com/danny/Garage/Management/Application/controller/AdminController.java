@@ -42,12 +42,12 @@ public class AdminController {
 
     //================================== Bill =======================================================
 
-    @GetMapping("/pending-labour")
+    @GetMapping("/bill/pending-labour")
     public List<BillDTO> getPendingBills() {
         return billService.getPendingLabourBills();
     }
 
-    @PutMapping("/update-labourbill")
+    @PutMapping("/bill/update-labourbill")
     public void updateLabour(@RequestBody LabourUpdateDTO dto) {
         billService.updateLabourAmount(dto);
     }
@@ -82,20 +82,20 @@ public class AdminController {
     
     //======================================== Vehicle =================================================
 
-    @GetMapping("/get/{id}")
+    @GetMapping("/vehicle/get/{id}")
     public ResponseEntity<List<VehicleDTO>> getMethodName(@PathVariable Long id) {
         List<VehicleDTO> vehicles = vehicleService.getAllUserVehicles(id);
         return ResponseEntity.ok(vehicles);
     }
 
-    @PostMapping("/create")
+    @PostMapping("/vehicle/create")
     public ResponseEntity<VehicleDTO> createVehicle(@RequestBody VehicleDTO dto) {
-        VehicleDTO vehicleDTO = vehicleService.createVehicle(dto);
+        VehicleDTO vehicleDTO = vehicleService.createVehicleByAdmin(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(vehicleDTO);
     }
     
     
-    @GetMapping("/getByStatus")
+    @GetMapping("/vehicle/getByStatus")
     public ResponseEntity<List<VehicleDTO>> getByStatus(@RequestParam JobStatus status) {
         List<VehicleDTO> vehicles =  vehicleService.getVehicleByStatus(status);
         return ResponseEntity.ok(vehicles);
