@@ -1,5 +1,6 @@
 package com.danny.Garage.Management.Application.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -112,6 +113,11 @@ public class UserService {
                 .map(Vehicle::getId)
                 .toList();
     }
+
+    public Long getCountOfRegisterUser(Long days){
+        LocalDateTime date = LocalDateTime.now().minusDays(days);
+        return (long) userRepository.findByCreatedAtAfter(date).size();
+        }
 
     public UserDTO toDto(User user, List<Long> vehicleIds) {
 

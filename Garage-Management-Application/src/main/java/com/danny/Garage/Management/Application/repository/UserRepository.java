@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import com.danny.Garage.Management.Application.entity.User;
 import java.util.List;
+import java.time.LocalDateTime;
+
 
 
 
@@ -22,5 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findById(Long id);
 
     Optional<User> findByEmail(String email);
+
+    List<User> findByCreatedAtAfter(LocalDateTime createdAt);
 
 }

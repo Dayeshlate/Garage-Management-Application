@@ -22,9 +22,11 @@ public class JobCardService {
     private SparePartRepository sparePartRepository;
     private JobCardRepository jobCardRepository;
     private UserService userService;
+    private JobCardService jobCardService;
 
-    public JobCardService(SparePartRepository sparePartRepository , JobCardRepository jobCardRepository,UserService userService){
+    public JobCardService(SparePartRepository sparePartRepository ,JobCardService jobCardService, JobCardRepository jobCardRepository,UserService userService){
         this.jobCardRepository = jobCardRepository;
+        this.jobCardService =jobCardService;
         this.sparePartRepository = sparePartRepository;
         this.userService = userService;
     }
@@ -90,6 +92,11 @@ public class JobCardService {
     public List<JobCardDTO> getAllJobCards(){
         List<JobCard> allJobCards = jobCardRepository.findByStatusNot(JobStatus.DELIVERED);
         return allJobCards.stream().map(this::toDto).toList();
+    }
+
+    public Long getLastDateActiveJobcardCount(Long days){
+        LocalDateTime date = LocalDateTime.now().minusDays(days);
+        return (long) jobCardRepository.findByOnCreateAfterAndJobStatusisNot(date,JobStatus.COMPLETED).size();
     }
     
 

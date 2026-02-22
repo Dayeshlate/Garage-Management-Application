@@ -9,11 +9,15 @@ import org.springframework.stereotype.Repository;
 
 import com.danny.Garage.Management.Application.entity.JobCard;
 import com.danny.Garage.Management.Application.entity.JobStatus;
+import java.time.LocalDateTime;
+
 
 @Repository
 public interface JobCardRepository extends JpaRepository<JobCard,Long> {
 
     List<JobCard> findByStatusNot(JobStatus status);
+
+    List<JobCard> findByOnCreateAfterAndJobStatusisNot(LocalDateTime onCreate, JobStatus jobStatus);
 
     
     @Query("""

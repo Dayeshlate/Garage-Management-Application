@@ -20,6 +20,7 @@ import com.danny.Garage.Management.Application.entity.JobStatus;
 import com.danny.Garage.Management.Application.repository.BillRepository;
 import com.danny.Garage.Management.Application.service.BillService;
 import com.danny.Garage.Management.Application.service.JobCardService;
+import com.danny.Garage.Management.Application.service.UserService;
 import com.danny.Garage.Management.Application.service.VehicleService;
 
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,13 +33,23 @@ public class AdminController {
     private VehicleService vehicleService;
     private JobCardService jobCardService;
     private BillService billService;
-    private BillRepository billRepository;
+    private UserService userService;
 
-    public AdminController(JobCardService jobCardService, BillService billService, VehicleService vehicleService){
+    public AdminController(JobCardService jobCardService,UserService userService, BillService billService, VehicleService vehicleService){
         this.jobCardService = jobCardService;
         this.vehicleService = vehicleService;
+        this.userService = userService;
         this.billService = billService;
     }
+
+    //================================== Users =====================================================
+
+    @GetMapping("/getRegisterUserCount")
+    public ResponseEntity getRegisterUserCunt(@RequestParam Long days) {
+        Long count = userService.getCountOfRegisterUser(days);
+        return ResponseEntity.ok(count);
+    }
+    
 
     //================================== Bill =======================================================
 
@@ -55,6 +66,12 @@ public class AdminController {
 
     //================================== JobCard =======================================================
 
+    @GetMapping("/getActiveJobCardwithinDays")
+    public ResponseEntity<Long> getActiveJobCardWhininDays(@RequestParam Long days) {
+        Long count = jobCardService.getLastDateActiveJobcardCount(days);
+        return ResponseEntity.ok(count);
+    }
+    
 
     @PostMapping("/jobcard/update")
     public ResponseEntity<JobCardDTO> updateJobCard(@RequestBody JobCardDTO dto) {
