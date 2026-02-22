@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import com.danny.Garage.Management.Application.entity.JobCard;
 import com.danny.Garage.Management.Application.entity.JobStatus;
+import com.danny.Garage.Management.Application.entity.Vehicle;
+
 import java.time.LocalDateTime;
 
 
@@ -35,5 +37,6 @@ public interface JobCardRepository extends JpaRepository<JobCard,Long> {
         JobStatus status
     );
 
+    
         
 }

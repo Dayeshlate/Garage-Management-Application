@@ -99,6 +99,10 @@ public class JobCardService {
         return (long) jobCardRepository.findByOnCreateAfterAndJobStatusisNot(date,JobStatus.COMPLETED).size();
     }
     
+    public List<JobCardDTO> getLastDateActiveJobcard(Long days){
+        LocalDateTime date = LocalDateTime.now().minusDays(days);
+        return jobCardRepository.findByOnCreateAfterAndJobStatusisNot(date,JobStatus.COMPLETED).stream().map(this::toDto).toList();
+    }
 
     public JobCard toEntity(JobCardDTO dto, Vehicle vehicle,Set<SparePart> spareParts){
         return JobCard.builder()

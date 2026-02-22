@@ -66,10 +66,16 @@ public class AdminController {
 
     //================================== JobCard =======================================================
 
-    @GetMapping("/getActiveJobCardwithinDays")
-    public ResponseEntity<Long> getActiveJobCardWhininDays(@RequestParam Long days) {
+    @GetMapping("/getActiveJobCardCountwithinDays")
+    public ResponseEntity<Long> getActiveJobCardCountWhininDays(@RequestParam Long days) {
         Long count = jobCardService.getLastDateActiveJobcardCount(days);
         return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/getActiveJobCardwithinDays")
+    public ResponseEntity<List<JobCardDTO>> getActiveJobCardWhininDays(@RequestParam Long days) {
+        List<JobCardDTO> jobCardDTOs = jobCardService.getLastDateActiveJobcard(days);
+        return ResponseEntity.ok(jobCardDTOs);
     }
     
 
@@ -104,6 +110,13 @@ public class AdminController {
         VehicleDTO vehicles = vehicleService.getVehicleById(id);
         return ResponseEntity.ok(vehicles);
     }
+
+    @GetMapping("/getCompletedWithinDays")
+    public ResponseEntity<List<VehicleDTO>> getServiceVehicles(@RequestParam Long days) {
+        List<VehicleDTO> vehicleDTOs = vehicleService.getServiceComplitedWhithinDays(days);
+        return ResponseEntity.ok(vehicleDTOs);
+    }
+    
 
     @PostMapping("/vehicle/create")
     public ResponseEntity<VehicleDTO> createVehicle(@RequestBody VehicleDTO dto) {

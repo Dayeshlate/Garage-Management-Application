@@ -1,5 +1,6 @@
 package com.danny.Garage.Management.Application.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,14 +22,14 @@ public class VehicleService {
     private VehicleRepository vehicleRepository;
     private final UserService userService;
 
-    public VehicleService(VehicleRepository vehicleRepository, UserService userService){
+    public VehicleService(VehicleRepository vehicleRepository, UserService userService) {
         this.vehicleRepository = vehicleRepository;
         this.userService = userService;
     }
 
     @Transactional
-    public VehicleDTO createVehicleByUser(VehicleDTO dto){
-        Vehicle vehicle=toEntity(dto);
+    public VehicleDTO createVehicleByUser(VehicleDTO dto) {
+        Vehicle vehicle = toEntity(dto);
         User user = userService.getCurrentUserObject();
         vehicle.setUser(user);
         JobCard jobCard = new JobCard();
@@ -40,8 +41,8 @@ public class VehicleService {
     }
 
     @Transactional
-    public VehicleDTO createVehicleByAdmin(VehicleDTO dto){
-        Vehicle vehicle=toEntity(dto);
+    public VehicleDTO createVehicleByAdmin(VehicleDTO dto) {
+        Vehicle vehicle = toEntity(dto);
         User user = (User) userService.findByEmail(dto.getUserEmail());
         vehicle.setUser(user);
         JobCard jobCard = new JobCard();
@@ -52,75 +53,78 @@ public class VehicleService {
         return toDTO(savedVehicle);
     }
 
-    public VehicleDTO updateVehicle(VehicleDTO dto){
+    public VehicleDTO updateVehicle(VehicleDTO dto) {
         Vehicle vehicle = toEntity(dto);
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return toDTO(savedVehicle);
     }
 
-
-    public List<VehicleDTO> getAllVehicles(){
-        PageRequest pageRequest = PageRequest.of(0, 15,Sort.by(Sort.Direction.DESC, "arrivalTime"));
+    public List<VehicleDTO> getAllVehicles() {
+        PageRequest pageRequest = PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "arrivalTime"));
 
         return vehicleRepository.findAll(pageRequest)
-                    .getContent()
-                    .stream()
-                    .map(this::toDTO)
-                    .toList();
+                .getContent()
+                .stream()
+                .map(this::toDTO)
+                .toList();
     }
 
-    public List<VehicleDTO> getAllUserVehicles(Long id){
+    public List<VehicleDTO> getAllUserVehicles(Long id) {
         return vehicleRepository.findByUserId(id).stream().map(this::toDTO).toList();
     }
 
-    public Vehicle getVehicleByNumber(String vehicleNumber){
-        return  vehicleRepository.findByVehicleNumber(vehicleNumber)
-                .orElseThrow(()-> new RuntimeException("Vehicle Not found having number "+vehicleNumber));
+    public Vehicle getVehicleByNumber(String vehicleNumber) {
+        return vehicleRepository.findByVehicleNumber(vehicleNumber)
+                .orElseThrow(() -> new RuntimeException("Vehicle Not found having number " + vehicleNumber));
     }
 
-    public List<VehicleDTO> getVehicleByStatus(JobStatus status){
+    public List<VehicleDTO> getVehicleByStatus(JobStatus status) {
         return vehicleRepository.findDistinctByJobCard_Status(status).stream().map(this::toDTO).toList();
     }
 
-    public VehicleDTO getVehicleById(Long id){
-        Vehicle vehicle = vehicleRepository.findById(id).
-            orElseThrow(()-> new RuntimeException("Vehicle not found with id: "+id));
+    public VehicleDTO getVehicleById(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
         return toDTO(vehicle);
-        }
+    }
 
+    public List<VehicleDTO> getServiceComplitedWhithinDays(Long days){
+        LocalDateTime date = LocalDateTime.now().minusDays(days);
+        return vehicleRepository.findByDeliveryTimeAfter(date).stream().map(this::toDTO).toList();
+    }
 
-    public Vehicle toEntity(VehicleDTO dto){
+    public Vehicle toEntity(VehicleDTO dto) {
         return Vehicle.builder()
-            .id(dto.getId())
-            .vehicleNumber(dto.getVehicleNumber())
-            .vehicleType(dto.getVehicleType())
-            .serviceType(dto.getServiceType())
-            .brand(dto.getBrand())
-            .model(dto.getModel())
-            .problemDescription(dto.getProblemDescription())
-            .solutionDescription(dto.getSolutionDescription())
-            .arrivalTime(dto.getArrivalTime())
-            .expectedTime(dto.getExpectedTime())
-            .deliveryTime(dto.getDeliveryTime())
-            .ownerName(dto.getOwnerName())
-            .build();
+                .id(dto.getId())
+                .vehicleNumber(dto.getVehicleNumber())
+                .vehicleType(dto.getVehicleType())
+                .serviceType(dto.getServiceType())
+                .brand(dto.getBrand())
+                .model(dto.getModel())
+                .problemDescription(dto.getProblemDescription())
+                .solutionDescription(dto.getSolutionDescription())
+                .arrivalTime(dto.getArrivalTime())
+                .expectedTime(dto.getExpectedTime())
+                .deliveryTime(dto.getDeliveryTime())
+                .ownerName(dto.getOwnerName())
+                .build();
 
     }
 
-    public VehicleDTO toDTO(Vehicle entity){
+    public VehicleDTO toDTO(Vehicle entity) {
         return VehicleDTO.builder()
-            .id(entity.getId())
-            .vehicleNumber(entity.getVehicleNumber())
-            .vehicleType(entity.getVehicleType())
-            .serviceType(entity.getServiceType())
-            .brand(entity.getBrand())
-            .model(entity.getModel())
-            .problemDescription(entity.getProblemDescription())
-            .solutionDescription(entity.getSolutionDescription())
-            .arrivalTime(entity.getArrivalTime())
-            .expectedTime(entity.getExpectedTime())
-            .deliveryTime(entity.getDeliveryTime())
-            .ownerName(entity.getOwnerName())
-            .build();
+                .id(entity.getId())
+                .vehicleNumber(entity.getVehicleNumber())
+                .vehicleType(entity.getVehicleType())
+                .serviceType(entity.getServiceType())
+                .brand(entity.getBrand())
+                .model(entity.getModel())
+                .problemDescription(entity.getProblemDescription())
+                .solutionDescription(entity.getSolutionDescription())
+                .arrivalTime(entity.getArrivalTime())
+                .expectedTime(entity.getExpectedTime())
+                .deliveryTime(entity.getDeliveryTime())
+                .ownerName(entity.getOwnerName())
+                .build();
     }
 }

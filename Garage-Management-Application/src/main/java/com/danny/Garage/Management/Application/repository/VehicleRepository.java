@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 
 import com.danny.Garage.Management.Application.entity.Vehicle;
 import com.danny.Garage.Management.Application.entity.JobStatus;
+import java.time.LocalDateTime;
+
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
@@ -24,8 +26,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     List<Vehicle> findDistinctByJobCard_Status(JobStatus status);
 
-    
+    List<Vehicle> findByJobCardJobStatus(JobStatus status);
 
-
+    List<Vehicle> findByDeliveryTimeAfter(LocalDateTime deliveryTime);
 }
 
