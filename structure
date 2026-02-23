@@ -252,3 +252,18 @@ Role
 ServiceLine
 Supplier
 Payment
+
+
+USER (Mechanic)
+    1
+    |
+    | (One mechanic can handle many jobs)
+    |
+    M
+JOB_CARD
+    M
+    |
+    | (Each job card belongs to one vehicle)
+    |
+    1
+VEHICLE
