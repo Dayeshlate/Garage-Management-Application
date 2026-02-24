@@ -119,6 +119,10 @@ public class UserService {
         return (long) userRepository.findByCreatedAtAfter(date).size();
         }
 
+    public Long getTotalUser(){
+        return userRepository.count();
+    }
+
     public UserDTO toDto(User user, List<Long> vehicleIds) {
 
         return UserDTO.builder()

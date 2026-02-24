@@ -17,7 +17,6 @@ import com.danny.Garage.Management.Application.dto.JobCardDTO;
 import com.danny.Garage.Management.Application.dto.LabourUpdateDTO;
 import com.danny.Garage.Management.Application.dto.VehicleDTO;
 import com.danny.Garage.Management.Application.entity.JobStatus;
-import com.danny.Garage.Management.Application.repository.BillRepository;
 import com.danny.Garage.Management.Application.service.BillService;
 import com.danny.Garage.Management.Application.service.JobCardService;
 import com.danny.Garage.Management.Application.service.UserService;
@@ -45,13 +44,26 @@ public class AdminController {
     //================================== Users =====================================================
 
     @GetMapping("/getRegisterUserCount")
-    public ResponseEntity getRegisterUserCunt(@RequestParam Long days) {
+    public ResponseEntity getRegisterUserCunt(@RequestParam Long days){
         Long count = userService.getCountOfRegisterUser(days);
         return ResponseEntity.ok(count);
     }
+
+    @GetMapping("/getUserCount")
+    public ResponseEntity<Long> getAllUserCount() {
+        Long count = userService.getTotalUser();
+        return ResponseEntity.ok(count);
+    }
+    
     
 
     //================================== Bill =======================================================
+
+    @GetMapping("/bill/getAllBills")
+   public ResponseEntity<List<BillDTO>> getAllBills() {
+       List<BillDTO> billDTOs = billService.getAllBill();;
+       return ResponseEntity.ok(billDTOs);
+   }
 
     @GetMapping("/bill/pending-labour")
     public List<BillDTO> getPendingBills() {
@@ -137,11 +149,7 @@ public class AdminController {
        return ResponseEntity.ok(vehicle);
    }
 
-   @GetMapping("/vehicle/getAllBills")
-   public ResponseEntity<List<BillDTO>> getAllBills() {
-       List<BillDTO> billDTOs = billService.getAllBill();;
-       return ResponseEntity.ok(billDTOs);
-   }
+   
     
    
    

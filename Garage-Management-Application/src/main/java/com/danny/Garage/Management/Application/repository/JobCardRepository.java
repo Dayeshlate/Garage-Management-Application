@@ -21,6 +21,7 @@ public interface JobCardRepository extends JpaRepository<JobCard,Long> {
 
     List<JobCard> findByOnCreateAfterAndJobStatusisNot(LocalDateTime onCreate, JobStatus jobStatus);
 
+
     
     @Query("""
        SELECT COUNT(jc)

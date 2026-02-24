@@ -1,6 +1,9 @@
 package com.danny.Garage.Management.Application.service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
@@ -73,6 +76,13 @@ public class BillService {
         List<BillDTO> billDTOs = billRepository.findByJobCardVehicleUserId(user.getId()).stream().map(this::toDTO).toList();
         return billDTOs;
     }
+
+    public BigDecimal getRevenue(Long days){
+        LocalDateTime date = LocalDateTime.now().minusDays(days);
+        List<Bill> bills = billRepository.findByLabourAmountIsNullAndBillDateAfter(date);
+        BigDecimal revenue;
+        revenue = billRepository.findByLabourAmountIsNullAndBillDateAfter(date).stream().map(Bill::getTotalPayment).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+    } 
 
     public BillDTO toDTO(Bill entity) {
         return BillDTO.builder()
