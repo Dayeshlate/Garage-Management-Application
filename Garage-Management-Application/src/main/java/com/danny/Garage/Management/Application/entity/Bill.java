@@ -1,5 +1,6 @@
 package com.danny.Garage.Management.Application.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -30,16 +31,16 @@ public class Bill {
 
     private LocalDateTime billDate;
 
-    private Long labourAmount;
+    private BigDecimal labourAmount;
 
     private String paymentMode;
 
-    private Double totalPayment;
+    private BigDecimal totalPayment;
 
     @Enumerated(EnumType.STRING)
     private BillStatus billStatus;
 
-    private Double sparePartAmount;
+    private BigDecimal sparePartAmount;
 
     @OneToOne
     @JoinColumn(name = "jobcard_id")

@@ -3,6 +3,8 @@ package com.danny.Garage.Management.Application.dto;
 import java.math.BigDecimal;
 import java.util.Set;
 
+import com.danny.Garage.Management.Application.entity.SparePart.SparePartBuilder;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
+
 public class SparePartDTO {
     
     private Long id;
@@ -20,7 +23,7 @@ public class SparePartDTO {
 
     private Double partNumber;
 
-    private Double partPrice;
+    private BigDecimal partPrice;
 
     private String manufacture;
 

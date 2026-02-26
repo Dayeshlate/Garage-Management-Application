@@ -1,5 +1,6 @@
 package com.danny.Garage.Management.Application.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.danny.Garage.Management.Application.entity.BillStatus;
@@ -18,16 +19,16 @@ public class BillDTO {
 
     private LocalDateTime billDate;
 
-    private Long labourAmount;
+    private BigDecimal labourAmount;
 
     private String paymentMode;
 
-    private Double totalBill;
+    private BigDecimal totalBill;
 
     private BillStatus billStatus;
 
     private Long jobCard_id;
 
-    private Double sparePartAmount;
+    private BigDecimal sparePartAmount;
 
 }

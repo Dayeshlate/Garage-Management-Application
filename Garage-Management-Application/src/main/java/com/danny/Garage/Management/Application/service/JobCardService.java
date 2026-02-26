@@ -1,7 +1,9 @@
 package com.danny.Garage.Management.Application.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,10 +43,11 @@ public class JobCardService {
 
     bill.setJobCard(jobCard);
 
-    double spareTotal = jobCard.getSpareParts()
-            .stream()
-            .mapToDouble(SparePart::getPartPrice)
-            .sum();
+    BigDecimal spareTotal = jobCard.getSpareParts()
+        .stream()
+        .map(SparePart::getPartPrice)
+        .filter(Objects::nonNull)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
 
     bill.setSparePartAmount(spareTotal);
     bill.setLabourAmount(null);
