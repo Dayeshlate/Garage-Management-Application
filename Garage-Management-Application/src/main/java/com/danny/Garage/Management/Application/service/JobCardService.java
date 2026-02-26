@@ -24,11 +24,10 @@ public class JobCardService {
     private SparePartRepository sparePartRepository;
     private JobCardRepository jobCardRepository;
     private UserService userService;
-    private JobCardService jobCardService;
 
-    public JobCardService(SparePartRepository sparePartRepository ,JobCardService jobCardService, JobCardRepository jobCardRepository,UserService userService){
+
+    public JobCardService(SparePartRepository sparePartRepository ,JobCardRepository jobCardRepository,UserService userService){
         this.jobCardRepository = jobCardRepository;
-        this.jobCardService =jobCardService;
         this.sparePartRepository = sparePartRepository;
         this.userService = userService;
     }
@@ -70,48 +69,48 @@ public class JobCardService {
     }
 
     public Long getAllJobCardsCount(){
-        Long allJobCards = (long) jobCardRepository.findByStatusNot(JobStatus.DELIVERED).size();
+        Long allJobCards = (long) jobCardRepository.findByJobStatusNot(JobStatus.DELIVERED).size();
         return allJobCards;
     }
 
     public List<JobCardDTO> getAllActiveJobCardForUser(){
         Long id = userService.getCurrentUser().getId();
-        List<JobCard> alljobcards = jobCardRepository.findByVehicleUserIdAndStatusNot(id,JobStatus.DELIVERED);
+        List<JobCard> alljobcards = jobCardRepository.findByVehicleUserIdAndJobStatusNot(id,JobStatus.DELIVERED);
         return alljobcards.stream().map(this::toDto).toList();
     }
     
     public Long getAllActiveServicesForUser(){
         Long currentUserId = userService.getCurrentUserObject().getId();
-        return jobCardRepository.countByUserIdAndStatusNot(currentUserId, JobStatus.DELIVERED);
+        return jobCardRepository.countByUserIdAndJobStatusNot(currentUserId, JobStatus.DELIVERED);
     }
 
     public List<JobCardDTO> getAllByStatus(JobStatus status){
-        List<JobCard> jobCards = jobCardRepository.findByStatusNot(status);
+        List<JobCard> jobCards = jobCardRepository.findByJobStatusNot(status);
 
         return jobCards.stream()
                 .map(this::toDto).toList();
     }
 
     public List<JobCardDTO> getAllJobCards(){
-        List<JobCard> allJobCards = jobCardRepository.findByStatusNot(JobStatus.DELIVERED);
+        List<JobCard> allJobCards = jobCardRepository.findByJobStatusNot(JobStatus.DELIVERED);
         return allJobCards.stream().map(this::toDto).toList();
     }
 
     public Long getLastDateActiveJobcardCount(Long days){
         LocalDateTime date = LocalDateTime.now().minusDays(days);
-        return (long) jobCardRepository.findByOnCreateAfterAndJobStatusisNot(date,JobStatus.COMPLETED).size();
+        return (long) jobCardRepository.findByOnCreateAfterAndJobStatusNot(date,JobStatus.COMPLETED).size();
     }
     
     public List<JobCardDTO> getLastDateActiveJobcard(Long days){
         LocalDateTime date = LocalDateTime.now().minusDays(days);
-        return jobCardRepository.findByOnCreateAfterAndJobStatusisNot(date,JobStatus.COMPLETED).stream().map(this::toDto).toList();
+        return jobCardRepository.findByOnCreateAfterAndJobStatusNot(date,JobStatus.COMPLETED).stream().map(this::toDto).toList();
     }
 
     public JobCard toEntity(JobCardDTO dto, Vehicle vehicle,Set<SparePart> spareParts){
         return JobCard.builder()
             .id(dto.getId())
             .vehicle(vehicle)
-            .status(dto.getJobStatus())
+            .jobStatus(dto.getJobStatus())
             .spareParts(spareParts)
             .build();
     }
@@ -120,7 +119,7 @@ public class JobCardService {
     return JobCardDTO.builder()
             .id(entity.getId())
             .Vehicle_id(entity.getVehicle().getId())
-            .JobStatus(entity.getStatus())
+            .JobStatus(entity.getJobStatus())
             .SparePart_id(
                     entity.getSpareParts()
                             .stream()

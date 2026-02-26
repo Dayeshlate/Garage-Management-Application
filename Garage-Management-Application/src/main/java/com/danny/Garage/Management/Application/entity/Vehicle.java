@@ -56,6 +56,7 @@ public class Vehicle {
     @Size(min = 10)
     private String solutionDescription;
     
+    @Column(nullable = false)
     private LocalDateTime arrivalTime;
     
     private LocalDateTime expectedTime;

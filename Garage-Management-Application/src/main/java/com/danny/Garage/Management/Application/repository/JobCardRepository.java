@@ -9,35 +9,34 @@ import org.springframework.stereotype.Repository;
 
 import com.danny.Garage.Management.Application.entity.JobCard;
 import com.danny.Garage.Management.Application.entity.JobStatus;
-import com.danny.Garage.Management.Application.entity.Vehicle;
 
 import java.time.LocalDateTime;
 
-
 @Repository
-public interface JobCardRepository extends JpaRepository<JobCard,Long> {
+public interface JobCardRepository extends JpaRepository<JobCard, Long> {
 
-    List<JobCard> findByStatusNot(JobStatus status);
+    // FIXED (was findByStatusNot)
+    List<JobCard> findByJobStatusNot(JobStatus jobStatus);
 
-    List<JobCard> findByOnCreateAfterAndJobStatusisNot(LocalDateTime onCreate, JobStatus jobStatus);
+    // This one is correct
+    List<JobCard> findByOnCreateAfterAndJobStatusNot(
+            LocalDateTime onCreate,
+            JobStatus jobStatus
+    );
 
-
-    
     @Query("""
        SELECT COUNT(jc)
        FROM JobCard jc
        WHERE jc.vehicle.user.id = :userId
-       AND jc.status <> :status
+       AND jc.jobStatus <> :status
        """)
-    Long countByUserIdAndStatusNot(
-        @Param("userId") Long userId,
-        @Param("status") JobStatus status);
-
-        List<JobCard> findByVehicleUserIdAndStatusNot(
-        Long userId,
-        JobStatus status
+    Long countByUserIdAndJobStatusNot(
+            @Param("userId") Long userId,
+            @Param("status") JobStatus status
     );
 
-    
-        
+    List<JobCard> findByVehicleUserIdAndJobStatusNot(
+            Long userId,
+            JobStatus jobStatus
+    );
 }

@@ -2,7 +2,6 @@ package com.danny.Garage.Management.Application.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -34,7 +33,7 @@ public class VehicleService {
         vehicle.setUser(user);
         JobCard jobCard = new JobCard();
         jobCard.setVehicle(vehicle);
-        jobCard.setStatus(JobStatus.ARRIVED);
+        jobCard.setJobStatus(JobStatus.ARRIVED);
         vehicle.setJobCard(List.of(jobCard));
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return toDTO(savedVehicle);
@@ -47,7 +46,7 @@ public class VehicleService {
         vehicle.setUser(user);
         JobCard jobCard = new JobCard();
         jobCard.setVehicle(vehicle);
-        jobCard.setStatus(JobStatus.ARRIVED);
+        jobCard.setJobStatus(JobStatus.ARRIVED);
         vehicle.setJobCard(List.of(jobCard));
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return toDTO(savedVehicle);
@@ -79,7 +78,7 @@ public class VehicleService {
     }
 
     public List<VehicleDTO> getVehicleByStatus(JobStatus status) {
-        return vehicleRepository.findDistinctByJobCard_Status(status).stream().map(this::toDTO).toList();
+        return vehicleRepository.findDistinctByJobCard_JobStatus(status).stream().map(this::toDTO).toList();
     }
 
     public VehicleDTO getVehicleById(Long id) {

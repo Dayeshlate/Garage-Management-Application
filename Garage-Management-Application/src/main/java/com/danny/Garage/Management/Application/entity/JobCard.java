@@ -7,6 +7,7 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -39,7 +40,7 @@ public class JobCard {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private JobStatus status;
+    private JobStatus jobStatus;
 
     @JsonIgnore
     @ManyToOne
@@ -49,6 +50,7 @@ public class JobCard {
     @OneToOne(mappedBy = "jobCard", cascade = CascadeType.ALL)
     private Bill bill;
 
+    @Column(nullable=false)
     private LocalDateTime onCreate;
 
     @ManyToMany(fetch = FetchType.LAZY,cascade = { CascadeType.PERSIST, CascadeType.MERGE })
