@@ -123,7 +123,7 @@ public class AdminController {
         return ResponseEntity.ok(vehicles);
     }
 
-    @GetMapping("/getCompletedWithinDays")
+    @GetMapping("/vehicle/getCompletedWithinDays")
     public ResponseEntity<List<VehicleDTO>> getServiceVehicles(@RequestParam Long days) {
         List<VehicleDTO> vehicleDTOs = vehicleService.getServiceComplitedWhithinDays(days);
         return ResponseEntity.ok(vehicleDTOs);

@@ -68,7 +68,8 @@ public class VehicleService {
                 .toList();
     }
 
-    public List<VehicleDTO> getAllUserVehicles(Long id) {
+    public List<VehicleDTO> getAllUserVehicles() {
+        Long id = userService.getCurrentUser().getId();
         return vehicleRepository.findByUserId(id).stream().map(this::toDTO).toList();
     }
 
@@ -85,6 +86,12 @@ public class VehicleService {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
         return toDTO(vehicle);
+    }
+
+    public Vehicle getVehicleEntityById(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
+        return vehicle;
     }
 
     public List<VehicleDTO> getServiceComplitedWhithinDays(Long days){

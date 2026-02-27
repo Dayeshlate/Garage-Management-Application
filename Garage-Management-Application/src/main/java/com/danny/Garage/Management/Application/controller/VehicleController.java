@@ -29,16 +29,22 @@ public class VehicleController {
         this.vehicleService = vehicleService;
     }
 
-    @GetMapping("/get/{id}")
-    public ResponseEntity<List<VehicleDTO>> getMethodName(@PathVariable Long id) {
-        List<VehicleDTO> vehicles = vehicleService.getAllUserVehicles(id);
-        return ResponseEntity.ok(vehicles);
-    }
+    // @GetMapping("/get/{id}")
+    // public ResponseEntity<List<VehicleDTO>> getMethodName(@PathVariable Long id) {
+    //     List<VehicleDTO> vehicles = vehicleService.getAllUserVehicles(id);
+    //     return ResponseEntity.ok(vehicles);
+    // }
 
     @PostMapping("/create")
     public ResponseEntity<VehicleDTO> createVehicle(@RequestBody VehicleDTO dto) {
         VehicleDTO vehicleDTO = vehicleService.createVehicleByUser(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(vehicleDTO);
+    }
+    
+    @GetMapping("/allUservehicle")
+    public ResponseEntity<List<VehicleDTO>> getAllUserVehicles() {
+        List<VehicleDTO> vehicleDTOs = vehicleService.getAllUserVehicles();
+        return ResponseEntity.ok(vehicleDTOs);
     }
     
     
