@@ -40,6 +40,7 @@ public class JobCard {
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "job_status")
     private JobStatus jobStatus;
 
     @JsonIgnore

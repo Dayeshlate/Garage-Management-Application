@@ -15,10 +15,10 @@ import java.time.LocalDateTime;
 @Repository
 public interface JobCardRepository extends JpaRepository<JobCard, Long> {
 
-    // FIXED (was findByStatusNot)
     List<JobCard> findByJobStatusNot(JobStatus jobStatus);
 
-    // This one is correct
+    List<JobCard> findByJobStatus(JobStatus jobStatus);
+
     List<JobCard> findByOnCreateAfterAndJobStatusNot(
             LocalDateTime onCreate,
             JobStatus jobStatus

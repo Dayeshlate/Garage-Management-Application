@@ -38,46 +38,46 @@ public class JobCardService {
 
     public JobCardDTO updateJobCard(JobCardDTO dto) {
 
-        JobCard jobCard = jobCardRepository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("JobCard not found"));
+    JobCard jobCard = jobCardRepository.findById(dto.getId())
+            .orElseThrow(() -> new RuntimeException("JobCard not found"));
 
-        if (dto.getJobStatus() != null) {
-            jobCard.setJobStatus(dto.getJobStatus());
-        }
-
-        if (dto.getSparePart_id() != null) {
-            Set<SparePart> spareParts = sparePartRepository
-                    .findAllById(dto.getSparePart_id())
-                    .stream()
-                    .collect(Collectors.toSet());
-
-            jobCard.setSpareParts(spareParts);
-        }
-
-        if (jobCard.getJobStatus() == JobStatus.COMPLETED
-                && jobCard.getBill() == null) {
-
-            Bill bill = new Bill();
-            bill.setJobCard(jobCard);
-
-            BigDecimal spareTotal = jobCard.getSpareParts()
-                    .stream()
-                    .map(SparePart::getPartPrice)
-                    .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            bill.setSparePartAmount(spareTotal);
-            bill.setLabourAmount(null);
-            bill.setTotalPayment(spareTotal);
-            bill.setBillDate(LocalDateTime.now());
-            bill.setBillStatus(BillStatus.PENDING_LABOUR);
-
-            jobCard.setBill(bill);
-        }
-
-        JobCard saved = jobCardRepository.save(jobCard);
-        return toDto(saved);
+    if (dto.getJobStatus() != null) {
+        jobCard.setJobStatus(dto.getJobStatus());
     }
+
+    if (dto.getSparePart_id() != null) {
+        Set<SparePart> spareParts = sparePartRepository
+                .findAllById(dto.getSparePart_id())
+                .stream()
+                .collect(Collectors.toSet());
+
+        jobCard.setSpareParts(spareParts);
+    }
+
+    if (jobCard.getJobStatus() == JobStatus.COMPLETED
+            && jobCard.getBill() == null) {
+
+        Bill bill = new Bill();
+        bill.setJobCard(jobCard);
+
+        BigDecimal spareTotal = jobCard.getSpareParts()
+                .stream()
+                .map(SparePart::getPartPrice)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        bill.setSparePartAmount(spareTotal);
+        bill.setLabourAmount(null);
+        bill.setTotalPayment(spareTotal);
+        bill.setBillDate(LocalDateTime.now());
+        bill.setBillStatus(BillStatus.PENDING_LABOUR);
+
+        jobCard.setBill(bill);
+    }
+    JobCard saved = jobCardRepository.save(jobCard);
+
+    return toDto(saved);
+}
 
     public Long getAllJobCardsCount() {
         Long allJobCards = (long) jobCardRepository.findByJobStatusNot(JobStatus.DELIVERED).size();
@@ -96,7 +96,7 @@ public class JobCardService {
     }
 
     public List<JobCardDTO> getAllByStatus(JobStatus status) {
-        List<JobCard> jobCards = jobCardRepository.findByJobStatusNot(status);
+        List<JobCard> jobCards = jobCardRepository.findByJobStatus(status);
 
         return jobCards.stream()
                 .map(this::toDto).toList();
