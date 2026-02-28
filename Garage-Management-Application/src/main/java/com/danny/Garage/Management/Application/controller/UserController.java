@@ -11,7 +11,11 @@ import com.danny.Garage.Management.Application.dto.UserDTO;
 import com.danny.Garage.Management.Application.entity.User;
 import com.danny.Garage.Management.Application.service.UserService;
 
+import java.util.List;
 import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -28,20 +32,13 @@ public class UserController {
     @PutMapping("/update/{id}")
     public ResponseEntity<Map<String, Object>> update(@RequestBody UserDTO dto,@PathVariable Long id){
         User updatUser = userService.updateUser(dto, id);
-        UserDTO updateDTO = userService.toDto(updatUser, null);
+        UserDTO updateDTO = userService.toDto(updatUser);
         return ResponseEntity.ok(
             Map.of(
                 "message","User update succesfully",
                 "user",updateDTO
             )
         );
-    }
-    
-    
-    @GetMapping("/profile")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> getProfile() {
-        return ResponseEntity.ok(Map.of("message", "User profile accessed"));
     }
     
     @GetMapping("/admin")
@@ -56,6 +53,13 @@ public class UserController {
     System.out.println("Authorities seen by Spring = " + auth.getAuthorities());
     return userService.getCurrentUser();
 }
+
+    @GetMapping("/getAllCustomer")
+    public ResponseEntity<List<UserDTO>> getAllCustomers() {
+        List<UserDTO> userDTOs = userService.getAllCustemors();
+        return ResponseEntity.ok(userDTOs);
+    }
+    
 
     
 }

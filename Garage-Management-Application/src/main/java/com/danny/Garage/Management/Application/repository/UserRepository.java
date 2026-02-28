@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.danny.Garage.Management.Application.entity.Role;
 import com.danny.Garage.Management.Application.entity.User;
 import java.util.List;
 import java.time.LocalDateTime;
@@ -27,4 +28,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByCreatedAtAfter(LocalDateTime createdAt);
 
+    List<User> findByRoleNot(Role role);
 }

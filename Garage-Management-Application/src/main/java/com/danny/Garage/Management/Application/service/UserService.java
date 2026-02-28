@@ -66,7 +66,7 @@ public class UserService {
         }
 
         User user = (User) authentication.getPrincipal();
-        return toDto(user, null);
+        return toDto(user);
     }
 
     public User getCurrentUserObject() {
@@ -123,17 +123,21 @@ public class UserService {
         return userRepository.count();
     }
 
-    public UserDTO toDto(User user, List<Long> vehicleIds) {
+    public List<UserDTO> getAllCustemors(){
+        List<UserDTO> users = userRepository.findByRoleNot(Role.ADMIN).stream().map(this::toDto).toList();
+        return users;
+    }
 
-        return UserDTO.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .phone(user.getPhone())
-                .role(user.getRole())
-                .vehicle_ids(getVehicleIdsForUser(user))
-                .username(user.getUsername())
-                .build();
+    public UserDTO toDto(User user) {
+    return UserDTO.builder()
+            .id(user.getId())
+            .name(user.getName())
+            .email(user.getEmail())
+            .phone(user.getPhone())
+            .role(user.getRole())
+            .vehicle_ids(getVehicleIdsForUser(user))
+            .username(user.getUsername())
+            .build();
     }
 
     private User toEntity(UserDTO dto, List<Vehicle> vehicles) {

@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.danny.Garage.Management.Application.dto.SparePartDTO;
 import com.danny.Garage.Management.Application.service.SparePartService;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("admin/SparePart")
@@ -37,6 +39,13 @@ public class SparePartController {
         SparePartDTO dto = sparePartService.getSparePartDTO(id);
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
+
+    @GetMapping("/getCount")
+    public ResponseEntity<Long> getCountByPartName(@RequestParam String partName) {
+        Long count = sparePartService.getCountOfSparePart(partName);
+        return ResponseEntity.ok(count);
+    }
+    
 
     
     

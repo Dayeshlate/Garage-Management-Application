@@ -99,6 +99,8 @@ public class VehicleService {
         return vehicleRepository.findByDeliveryTimeAfter(date).stream().map(this::toDTO).toList();
     }
 
+    
+
     public Vehicle toEntity(VehicleDTO dto) {
         return Vehicle.builder()
                 .id(dto.getId())

@@ -34,7 +34,10 @@ public class SparePartService {
         sparePartRepository.save(sparePart);
 
         return dto;
+    }
 
+    public Long getCountOfSparePart(String sparePart){
+        return sparePartRepository.countByPartName(sparePart);
     }
 
     public SparePartDTO getSparePartDTO(Long id){
@@ -50,7 +53,7 @@ public class SparePartService {
             .collect(Collectors.toList());
     }
 
-    public Set<JobCard> getJobCard(SparePartDTO dto){
+    public Set<JobCard> getAllJobCardsWithSparepart(SparePartDTO dto){
         Set<JobCard> Jobcards = dto.getJobCardIds() == null 
                 ? Collections.emptySet() 
                 : jobCardReository.findAllById(dto.getJobCardIds()).stream().collect(Collectors.toSet());

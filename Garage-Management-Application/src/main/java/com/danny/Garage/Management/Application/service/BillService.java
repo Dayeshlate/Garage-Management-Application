@@ -25,7 +25,7 @@ public class BillService {
     private final JobCardRepository jobCardRepository;
     private final UserService userService;
 
-    public BillService(BillRepository billRepository,UserService userService, JobCardRepository jobCardRepository) {
+    public BillService(BillRepository billRepository, UserService userService, JobCardRepository jobCardRepository) {
         this.billRepository = billRepository;
         this.userService = userService;
         this.jobCardRepository = jobCardRepository;
@@ -42,55 +42,60 @@ public class BillService {
     @Transactional
     public void updateLabourAmount(LabourUpdateDTO dto) {
 
-    Bill bill = billRepository.findById(dto.getBillId())
-            .orElseThrow(() -> new RuntimeException("Bill not found"));
+        Bill bill = billRepository.findById(dto.getBillId())
+                .orElseThrow(() -> new RuntimeException("Bill not found"));
 
-    if (bill.getBillStatus() != BillStatus.PENDING_LABOUR) {
-        throw new RuntimeException("Bill is not awaiting labour update");
+        if (bill.getBillStatus() != BillStatus.PENDING_LABOUR) {
+            throw new RuntimeException("Bill is not awaiting labour update");
+        }
+
+        if (dto.getLabourAmount() == null ||
+                dto.getLabourAmount().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Invalid labour amount");
+        }
+
+        bill.setLabourAmount(dto.getLabourAmount());
+
+        BigDecimal spareAmount = bill.getSparePartAmount() != null
+                ? bill.getSparePartAmount()
+                : BigDecimal.ZERO;
+
+        BigDecimal total = spareAmount.add(dto.getLabourAmount());
+
+        bill.setTotalPayment(total);
+        bill.setBillStatus(BillStatus.FINALIZED);
     }
 
-    if (dto.getLabourAmount() == null ||
-    dto.getLabourAmount().compareTo(BigDecimal.ZERO) < 0) {
-    throw new RuntimeException("Invalid labour amount");
-}
-
-    bill.setLabourAmount(dto.getLabourAmount());
-
-    BigDecimal spareAmount = bill.getSparePartAmount() != null
-            ? bill.getSparePartAmount()
-            : BigDecimal.ZERO;
-
-    BigDecimal total = spareAmount.add(dto.getLabourAmount());
-
-    bill.setTotalPayment(total);
-    bill.setBillStatus(BillStatus.FINALIZED);
-}
-
-    public List<BillDTO> getAllBill(){
+    public List<BillDTO> getAllBill() {
         List<BillDTO> allBillDTOs = billRepository.findAll().stream().map(this::toDTO).toList();
         return allBillDTOs;
     }
 
-    public List<BillDTO> getAllBillForUser(){
+    public List<BillDTO> getAllBillForUser() {
         UserDTO user = userService.getCurrentUser();
-        List<BillDTO> billDTOs = billRepository.findByJobCardVehicleUserId(user.getId()).stream().map(this::toDTO).toList();
+        List<BillDTO> billDTOs = billRepository.findByJobCardVehicleUserId(user.getId()).stream().map(this::toDTO)
+                .toList();
         return billDTOs;
     }
 
     public BigDecimal getRevenue(Long days) {
 
-    LocalDateTime date = LocalDateTime.now().minusDays(days);
+        LocalDateTime date = LocalDateTime.now().minusDays(days);
 
-    List<Bill> bills = billRepository
-            .findByLabourAmountIsNullAndBillDateAfter(date);
+        List<Bill> bills = billRepository
+                .findByLabourAmountIsNullAndBillDateAfter(date);
 
-    BigDecimal revenue = bills.stream()
-            .map(Bill::getTotalPayment)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal revenue = bills.stream()
+                .map(Bill::getTotalPayment)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    return revenue;
-}
+        return revenue;
+    }
+
+    public Long getTotalCountOfBillsForUser(){
+        return billRepository.countByJobCardVehicleUser(userService.getCurrentUserObject());
+    }
 
     public BillDTO toDTO(Bill entity) {
         return BillDTO.builder()

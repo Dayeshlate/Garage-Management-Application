@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
 
+
 @RestController
 @RequestMapping("user/bill")
 public class BillController {
@@ -23,6 +24,12 @@ public class BillController {
     public ResponseEntity<List<BillDTO>> getAllBillsForUser() {
         List<BillDTO> allBillDTOs = billService.getAllBillForUser();
         return ResponseEntity.ok(allBillDTOs);
+    }
+    
+    @GetMapping("/getBillCountForUser")
+    public ResponseEntity<Long> getBillCountForUser() {
+        Long billCount = billService.getTotalCountOfBillsForUser();
+        return ResponseEntity.ok(billCount);
     }
     
     
