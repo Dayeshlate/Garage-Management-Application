@@ -31,9 +31,9 @@ public class SparePartService {
                 : jobCardReository.findAllById(dto.getJobCardIds()).stream().collect(Collectors.toSet());
 
         SparePart sparePart = toEntity(dto, Jobcards);
-        sparePartRepository.save(sparePart);
+        SparePart savedSparePart = sparePartRepository.save(sparePart);
 
-        return dto;
+        return toDTO(savedSparePart);
     }
 
     public Long getCountOfSparePart(String sparePart){
@@ -69,13 +69,11 @@ public class SparePartService {
         return name+" having id "+ id+" is delete permantly";
     }
 
-    
-
     public SparePart toEntity(SparePartDTO sparePartDTO, Set<JobCard> JobCards){
         return SparePart.builder()
             .id(sparePartDTO.getId())
             .partName(sparePartDTO.getPartName())
-            .partNumber(sparePartDTO.getPartNumber())
+            .partStock(sparePartDTO.getPartStock())
             .partPrice(sparePartDTO.getPartPrice())
             .manufacture(sparePartDTO.getManufacture())
             .jobCards(JobCards)
@@ -87,7 +85,7 @@ public class SparePartService {
     return SparePartDTO.builder()
         .id(entity.getId())
         .partName(entity.getPartName())
-        .partNumber(entity.getPartNumber())
+        .partStock(entity.getPartStock())
         .partPrice(entity.getPartPrice())
         .manufacture(entity.getManufacture())
         .jobCardIds(

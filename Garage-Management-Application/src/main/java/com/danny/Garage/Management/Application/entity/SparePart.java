@@ -30,7 +30,7 @@ public class SparePart {
 
     private String partName;
 
-    private Double partNumber;
+    private Long partStock;
 
     private BigDecimal partPrice;
 

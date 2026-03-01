@@ -18,7 +18,7 @@ public class SparePartDTO {
 
     private String partName;
 
-    private Double partNumber;
+    private Long partStock;
 
     private BigDecimal partPrice;
 

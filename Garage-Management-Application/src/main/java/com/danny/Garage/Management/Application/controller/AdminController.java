@@ -41,7 +41,7 @@ public class AdminController {
         this.billService = billService;
     }
 
-    
+
 
     //================================== Users =====================================================
 
@@ -151,6 +151,11 @@ public class AdminController {
        return ResponseEntity.ok(vehicle);
    }
 
+   @GetMapping("/getAllVehicles")
+   public ResponseEntity<List<VehicleDTO>> getAllVehiclesDTOs() {
+       List<VehicleDTO> vehicleDTOs = vehicleService.getAllUserVehicles();
+       return ResponseEntity.ok(vehicleDTOs);
+   }
    
     
    

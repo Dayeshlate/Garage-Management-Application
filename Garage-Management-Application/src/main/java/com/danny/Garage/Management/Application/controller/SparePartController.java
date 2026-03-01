@@ -1,6 +1,8 @@
 package com.danny.Garage.Management.Application.controller;
 
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,8 +47,13 @@ public class SparePartController {
         Long count = sparePartService.getCountOfSparePart(partName);
         return ResponseEntity.ok(count);
     }
-    
 
+    @GetMapping("/getAll")
+    public ResponseEntity<List<SparePartDTO>> getAllSparePartDTOs() {
+        List<SparePartDTO> sparePartDTOs = sparePartService.getAllSparePartDTOs();
+        return ResponseEntity.ok(sparePartDTOs);
+    }
+    
     
     
 }

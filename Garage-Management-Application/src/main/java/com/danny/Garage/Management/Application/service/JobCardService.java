@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.danny.Garage.Management.Application.dto.JobCardDTO;
-import com.danny.Garage.Management.Application.dto.VehicleDTO;
 import com.danny.Garage.Management.Application.entity.Bill;
 import com.danny.Garage.Management.Application.entity.BillStatus;
 import com.danny.Garage.Management.Application.entity.JobCard;
@@ -19,6 +18,8 @@ import com.danny.Garage.Management.Application.entity.SparePart;
 import com.danny.Garage.Management.Application.entity.Vehicle;
 import com.danny.Garage.Management.Application.repository.JobCardRepository;
 import com.danny.Garage.Management.Application.repository.SparePartRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class JobCardService {
@@ -36,6 +37,7 @@ public class JobCardService {
         this.userService = userService;
     }
 
+    @Transactional
     public JobCardDTO updateJobCard(JobCardDTO dto) {
 
     JobCard jobCard = jobCardRepository.findById(dto.getId())
@@ -46,6 +48,7 @@ public class JobCardService {
     }
 
     if (dto.getSparePart_id() != null) {
+
         Set<SparePart> spareParts = sparePartRepository
                 .findAllById(dto.getSparePart_id())
                 .stream()
@@ -57,6 +60,18 @@ public class JobCardService {
     if (jobCard.getJobStatus() == JobStatus.COMPLETED
             && jobCard.getBill() == null) {
 
+        for (SparePart sparePart : jobCard.getSpareParts()) {
+
+            if (sparePart.getPartStock() <= 0) {
+                throw new RuntimeException(
+                        "Stock not available for part: "
+                                + sparePart.getPartName());
+            }
+
+            sparePart.setPartStock(
+                    sparePart.getPartStock() - 1
+            );
+        }
         Bill bill = new Bill();
         bill.setJobCard(jobCard);
 
@@ -74,8 +89,8 @@ public class JobCardService {
 
         jobCard.setBill(bill);
     }
-    JobCard saved = jobCardRepository.save(jobCard);
 
+    JobCard saved = jobCardRepository.save(jobCard);
     return toDto(saved);
 }
 
