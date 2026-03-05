@@ -20,4 +20,6 @@ public interface BillRepository extends JpaRepository<Bill,Long> {
     List<Bill> findByBillStatusAndBillDateAfter(BillStatus finalized, LocalDateTime date);
 
     Long countByJobCardVehicleUser(User user);
+
+    List<Bill> findByJobCardVehicleId(Long id);
 }

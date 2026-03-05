@@ -99,6 +99,10 @@ public class VehicleService {
         return vehicleRepository.findByDeliveryTimeAfter(date).stream().map(this::toDTO).toList();
     }
 
+    public boolean isPresent(Long id){
+        return vehicleRepository.existsById(id);
+    }
+
     public Vehicle toEntity(VehicleDTO dto) {
         return Vehicle.builder()
                 .id(dto.getId())

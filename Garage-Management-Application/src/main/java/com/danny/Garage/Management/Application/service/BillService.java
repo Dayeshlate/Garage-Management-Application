@@ -24,11 +24,13 @@ public class BillService {
     private final BillRepository billRepository;
     private final JobCardRepository jobCardRepository;
     private final UserService userService;
+    private final VehicleService vehicleService;
 
-    public BillService(BillRepository billRepository, UserService userService, JobCardRepository jobCardRepository) {
+    public BillService(BillRepository billRepository,VehicleService vehicleService, UserService userService, JobCardRepository jobCardRepository) {
         this.billRepository = billRepository;
         this.userService = userService;
         this.jobCardRepository = jobCardRepository;
+        this.vehicleService = vehicleService;
     }
 
     public List<BillDTO> getPendingLabourBills() {
@@ -95,6 +97,15 @@ public class BillService {
 
     public Long getTotalCountOfBillsForUser(){
         return billRepository.countByJobCardVehicleUser(userService.getCurrentUserObject());
+    }
+
+    public List<BillDTO> getAllBillsOfVehicle(Long id){
+        boolean exist = vehicleService.isPresent(id);
+        if(!exist){
+            throw new RuntimeException("Vehicle not found with id :"+id);
+        }
+        List<Bill> allBills = billRepository.findByJobCardVehicleId(id);
+        return allBills.stream().map(this::toDTO).toList();
     }
 
     public BillDTO toDTO(Bill entity) {

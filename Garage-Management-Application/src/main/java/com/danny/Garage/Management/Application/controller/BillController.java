@@ -7,6 +7,9 @@ import com.danny.Garage.Management.Application.service.BillService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -30,6 +33,11 @@ public class BillController {
     public ResponseEntity<Long> getBillCountForUser() {
         Long billCount = billService.getTotalCountOfBillsForUser();
         return ResponseEntity.ok(billCount);
+    }
+    
+    @GetMapping("/getAllBillsOfVehicle/{id}")
+    public ResponseEntity<List<BillDTO>> getAllBillsOfvehicle(@PathVariable Long id) {
+        return ResponseEntity.ok(billService.getAllBillsOfVehicle(id));
     }
     
     

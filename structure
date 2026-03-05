@@ -266,3 +266,51 @@ JOB_CARD
     |
     1
 VEHICLE
+
+
+Customers
+
+Method	Endpoint	Description
+GET	/customers	List all customers
+GET	/customers/{id}	Get customer by ID
+POST	/customers	Create customer
+PUT	/customers/{id}	Update customer
+DELETE	/customers/{id}	Delete customer
+
+Vehicles
+Method	Endpoint	Description
+GET	/vehicles	List all vehicles
+GET	/vehicles/{id}	Get vehicle by ID
+POST	/vehicles	Create vehicle
+PUT	/vehicles/{id}	Update vehicle
+DELETE	/vehicles/{id}	Delete vehicle
+
+
+Job Cards
+Method	Endpoint	Description
+GET	/job-cards	List all job cards
+GET	/job-cards/{id}	Get job card by ID
+POST	/job-cards	Create job card
+PUT	/job-cards/{id}	Update job card
+DELETE	/job-cards/{id}	Delete job card
+
+
+Inventory
+
+Method	Endpoint	Description
+GET	/inventory	List all inventory items
+GET	/inventory/{id}	Get item by ID
+POST	/inventory	Create item
+PUT	/inventory/{id}	Update item
+DELETE	/inventory/{id}	Delete item
+
+Invoices / Billing
+Method	Endpoint	Description
+GET	/invoices	List all invoices
+GET	/invoices/{id}	Get invoice by ID
+POST	/invoices	Create invoice
+PUT	/invoices/{id}	Update invoice (used for filling labour amount)
+DELETE	/invoices/{id}	Delete invoice
+Authentication (from your login flow)
+Method	Endpoint	Description
+POST	/auth/login	Login (returns JWT token + user info)
