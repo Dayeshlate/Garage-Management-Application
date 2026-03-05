@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.danny.Garage.Management.Application.dto.BillDTO;
@@ -26,7 +27,14 @@ public class BillService {
     private final UserService userService;
     private final VehicleService vehicleService;
 
-    public BillService(BillRepository billRepository,VehicleService vehicleService, UserService userService, JobCardRepository jobCardRepository) {
+    @Value("${billing.tax}")
+    private BigDecimal tax;
+
+    @Value("${billing.discount}")
+    private BigDecimal discount;
+
+    public BillService(BillRepository billRepository, VehicleService vehicleService, UserService userService,
+            JobCardRepository jobCardRepository) {
         this.billRepository = billRepository;
         this.userService = userService;
         this.jobCardRepository = jobCardRepository;
@@ -62,7 +70,14 @@ public class BillService {
                 ? bill.getSparePartAmount()
                 : BigDecimal.ZERO;
 
-        BigDecimal total = spareAmount.add(dto.getLabourAmount());
+        BigDecimal subtotal = spareAmount.add(dto.getLabourAmount());
+
+        BigDecimal taxAmount = subtotal.multiply(tax);
+        BigDecimal discountAmount = subtotal.multiply(discount);
+
+        BigDecimal total = subtotal
+                .add(taxAmount)
+                .subtract(discountAmount);
 
         bill.setTotalPayment(total);
         bill.setBillStatus(BillStatus.FINALIZED);
@@ -95,14 +110,14 @@ public class BillService {
         return revenue;
     }
 
-    public Long getTotalCountOfBillsForUser(){
+    public Long getTotalCountOfBillsForUser() {
         return billRepository.countByJobCardVehicleUser(userService.getCurrentUserObject());
     }
 
-    public List<BillDTO> getAllBillsOfVehicle(Long id){
+    public List<BillDTO> getAllBillsOfVehicle(Long id) {
         boolean exist = vehicleService.isPresent(id);
-        if(!exist){
-            throw new RuntimeException("Vehicle not found with id :"+id);
+        if (!exist) {
+            throw new RuntimeException("Vehicle not found with id :" + id);
         }
         List<Bill> allBills = billRepository.findByJobCardVehicleId(id);
         return allBills.stream().map(this::toDTO).toList();
