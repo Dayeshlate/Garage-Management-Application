@@ -88,8 +88,6 @@ public class UserService {
 
         if (dto.getEmail() != null)
             existUser.setEmail(dto.getEmail());
-        if (dto.getUsername() != null)
-            existUser.setUsername(dto.getUsername());
         if (dto.getName() != null)
             existUser.setName(dto.getName());
         if (dto.getPhone() != null)

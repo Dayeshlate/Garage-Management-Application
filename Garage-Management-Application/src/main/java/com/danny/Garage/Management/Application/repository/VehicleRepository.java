@@ -29,5 +29,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByJobCardJobStatus(JobStatus status);
 
     List<Vehicle> findByDeliveryTimeAfter(LocalDateTime deliveryTime);
+
+    List<Vehicle> findByUserIdAndJobCardJobStatus(Long userId, JobStatus status);
+
 }
 

@@ -82,6 +82,12 @@ public class VehicleService {
         return vehicleRepository.findDistinctByJobCard_JobStatus(status).stream().map(this::toDTO).toList();
     }
 
+    public List<VehicleDTO> getUserVehicleByStatus(JobStatus status){
+        Long id = userService.getCurrentUser().getId();
+        List<VehicleDTO> vehicleDTOs =  vehicleRepository.findByUserIdAndJobCardJobStatus(id,status).stream().map(this::toDTO).toList();
+        return vehicleDTOs;
+    }
+
     public VehicleDTO getVehicleById(Long id) {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
