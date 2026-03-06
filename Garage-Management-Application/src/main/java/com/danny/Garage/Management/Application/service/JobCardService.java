@@ -105,6 +105,12 @@ public class JobCardService {
         return alljobcards.stream().map(this::toDto).toList();
     }
 
+    public Long getActiveJobCardCountForUser(){
+        Long userId = userService.getCurrentUser().getId();
+        Long count = jobCardRepository.countByUserIdAndJobStatusNot(userId,JobStatus.DELIVERED);
+        return count;
+    }
+
     public Long getAllActiveServicesForUser() {
         Long currentUserId = userService.getCurrentUserObject().getId();
         return jobCardRepository.countByUserIdAndJobStatusNot(currentUserId, JobStatus.DELIVERED);

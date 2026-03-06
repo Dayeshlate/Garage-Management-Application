@@ -26,7 +26,7 @@ public class JobCardController {
 
     @GetMapping("/Active_count")
     public ResponseEntity<Long> getAllActiveServiceCount() {
-        Long count = jobCardService.getAllJobCardsCount();
+        Long count = jobCardService.getActiveJobCardCountForUser();
         return ResponseEntity.ok(count);
     }
     

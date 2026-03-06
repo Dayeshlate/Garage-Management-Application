@@ -116,8 +116,11 @@ public class BillService {
 
     public List<BillDTO> getAllBillsOfVehicle(Long id) {
         boolean exist = vehicleService.isPresent(id);
+        boolean userVehicle = vehicleService.getAllUserVehicles().stream().anyMatch(vehicle -> vehicle.getId().equals(id));
         if (!exist) {
             throw new RuntimeException("Vehicle not found with id :" + id);
+        }else if(!userVehicle){
+            throw new RuntimeException("You cant get bill of this vehicle please contact us !");
         }
         List<Bill> allBills = billRepository.findByJobCardVehicleId(id);
         return allBills.stream().map(this::toDTO).toList();
