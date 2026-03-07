@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,13 +18,13 @@ import com.danny.Garage.Management.Application.dto.JobCardDTO;
 import com.danny.Garage.Management.Application.dto.LabourUpdateDTO;
 import com.danny.Garage.Management.Application.dto.VehicleDTO;
 import com.danny.Garage.Management.Application.entity.JobStatus;
+import com.danny.Garage.Management.Application.entity.VehicleStatus;
 import com.danny.Garage.Management.Application.service.BillService;
 import com.danny.Garage.Management.Application.service.JobCardService;
 import com.danny.Garage.Management.Application.service.UserService;
 import com.danny.Garage.Management.Application.service.VehicleService;
 
 import org.springframework.web.bind.annotation.RequestParam;
-
 
 @RestController
 @RequestMapping("/admin")
@@ -34,19 +35,19 @@ public class AdminController {
     private BillService billService;
     private UserService userService;
 
-    public AdminController(JobCardService jobCardService,UserService userService, BillService billService, VehicleService vehicleService){
+    public AdminController(JobCardService jobCardService, UserService userService, BillService billService,
+            VehicleService vehicleService) {
         this.jobCardService = jobCardService;
         this.vehicleService = vehicleService;
         this.userService = userService;
         this.billService = billService;
     }
 
-
-
-    //================================== Users =====================================================
+    // ================================== Users
+    // =====================================================
 
     @GetMapping("/getRegisterUserCount")
-    public ResponseEntity getRegisterUserCunt(@RequestParam Long days){
+    public ResponseEntity getRegisterUserCunt(@RequestParam Long days) {
         Long count = userService.getCountOfRegisterUser(days);
         return ResponseEntity.ok(count);
     }
@@ -56,16 +57,16 @@ public class AdminController {
         Long count = userService.getTotalUser();
         return ResponseEntity.ok(count);
     }
-    
-    
 
-    //================================== Bill =======================================================
+    // ================================== Bill
+    // =======================================================
 
     @GetMapping("/bill/getAllBills")
-   public ResponseEntity<List<BillDTO>> getAllBills() {
-       List<BillDTO> billDTOs = billService.getAllBill();;
-       return ResponseEntity.ok(billDTOs);
-   }
+    public ResponseEntity<List<BillDTO>> getAllBills() {
+        List<BillDTO> billDTOs = billService.getAllBill();
+        ;
+        return ResponseEntity.ok(billDTOs);
+    }
 
     @GetMapping("/bill/pending-labour")
     public List<BillDTO> getPendingBills() {
@@ -77,8 +78,8 @@ public class AdminController {
         billService.updateLabourAmount(dto);
     }
 
-
-    //================================== JobCard =======================================================
+    // ================================== JobCard
+    // =======================================================
 
     @GetMapping("/getActiveJobCardCountwithinDays")
     public ResponseEntity<Long> getActiveJobCardCountWhininDays(@RequestParam Long days) {
@@ -91,7 +92,6 @@ public class AdminController {
         List<JobCardDTO> jobCardDTOs = jobCardService.getLastDateActiveJobcard(days);
         return ResponseEntity.ok(jobCardDTOs);
     }
-    
 
     @PostMapping("/jobcard/update")
     public ResponseEntity<JobCardDTO> updateJobCard(@RequestBody JobCardDTO dto) {
@@ -116,8 +116,9 @@ public class AdminController {
         List<JobCardDTO> allJobCardDTOs = jobCardService.getAllJobCards();
         return ResponseEntity.ok(allJobCardDTOs);
     }
-    
-    //======================================== Vehicle =================================================
+
+    // ======================================== Vehicle
+    // =================================================
 
     @GetMapping("/vehicle/get/{id}")
     public ResponseEntity<VehicleDTO> getvehicle(@PathVariable Long id) {
@@ -130,35 +131,48 @@ public class AdminController {
         List<VehicleDTO> vehicleDTOs = vehicleService.getServiceComplitedWhithinDays(days);
         return ResponseEntity.ok(vehicleDTOs);
     }
-    
+
+    @GetMapping("/vehicle/getByStatus")
+    public ResponseEntity<List<VehicleDTO>> getByStatus(@RequestParam JobStatus status) {
+        List<VehicleDTO> vehicles = vehicleService.getVehicleByStatus(status);
+        return ResponseEntity.ok(vehicles);
+    }
+
+    @PutMapping("/vehicle/update")
+    public ResponseEntity<VehicleDTO> updateVehicle(@RequestBody VehicleDTO dto) {
+        VehicleDTO vehicle = vehicleService.updateVehicle(dto);
+        return ResponseEntity.ok(vehicle);
+    }
+
+    @GetMapping("/getAllVehicles")
+    public ResponseEntity<List<VehicleDTO>> getAllVehiclesDTOs() {
+        List<VehicleDTO> vehicleDTOs = vehicleService.getAllVehicles();
+        return ResponseEntity.ok(vehicleDTOs);
+    }
+
+    @PutMapping("/vehicle/{id}/approve")
+    public ResponseEntity<VehicleDTO> approveVehicle(@PathVariable Long id) {
+        VehicleDTO vehicle = vehicleService.approveVehicle(id);
+        return ResponseEntity.ok(vehicle);
+    }
+
+    @PutMapping("/vehicle/{id}/reject")
+    public ResponseEntity<VehicleDTO> rejectVehicle(@PathVariable Long id) {
+        VehicleDTO vehicle = vehicleService.rejectVehicle(id);
+        return ResponseEntity.ok(vehicle);
+    }
+
+    @GetMapping("/vehicle/pending")
+    public ResponseEntity<List<VehicleDTO>> getPendingVehicles() {
+        List<VehicleDTO> vehicles = vehicleService.getVehiclesByStatus(VehicleStatus.PENDING);
+        return ResponseEntity.ok(vehicles);
+    }
 
     @PostMapping("/vehicle/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<VehicleDTO> createVehicle(@RequestBody VehicleDTO dto) {
         VehicleDTO vehicleDTO = vehicleService.createVehicleByAdmin(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(vehicleDTO);
     }
-    
-    
-    @GetMapping("/vehicle/getByStatus")
-    public ResponseEntity<List<VehicleDTO>> getByStatus(@RequestParam JobStatus status) {
-        List<VehicleDTO> vehicles =  vehicleService.getVehicleByStatus(status);
-        return ResponseEntity.ok(vehicles);
-   }
-
-   @GetMapping("/vehicle/update")
-   public ResponseEntity<VehicleDTO> updateVehicle(@RequestBody VehicleDTO dto) {
-       VehicleDTO vehicle = vehicleService.updateVehicle(dto);
-       return ResponseEntity.ok(vehicle);
-   }
-
-   @GetMapping("/getAllVehicles")
-   public ResponseEntity<List<VehicleDTO>> getAllVehiclesDTOs() {
-       List<VehicleDTO> vehicleDTOs = vehicleService.getAllUserVehicles();
-       return ResponseEntity.ok(vehicleDTOs);
-   }
-   
-    
-   
-   
 
 }

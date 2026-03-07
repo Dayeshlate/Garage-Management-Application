@@ -13,6 +13,8 @@ import com.danny.Garage.Management.Application.entity.JobCard;
 import com.danny.Garage.Management.Application.entity.JobStatus;
 import com.danny.Garage.Management.Application.entity.User;
 import com.danny.Garage.Management.Application.entity.Vehicle;
+import com.danny.Garage.Management.Application.entity.VehicleStatus;
+import com.danny.Garage.Management.Application.repository.JobCardRepository;
 import com.danny.Garage.Management.Application.repository.VehicleRepository;
 
 @Service
@@ -20,10 +22,13 @@ public class VehicleService {
 
     private VehicleRepository vehicleRepository;
     private final UserService userService;
+    private final JobCardRepository jobCardRepository;
 
-    public VehicleService(VehicleRepository vehicleRepository, UserService userService) {
+    public VehicleService(VehicleRepository vehicleRepository, UserService userService,
+            JobCardRepository jobCardRepository) {
         this.vehicleRepository = vehicleRepository;
         this.userService = userService;
+        this.jobCardRepository = jobCardRepository;
     }
 
     @Transactional
@@ -31,10 +36,7 @@ public class VehicleService {
         Vehicle vehicle = toEntity(dto);
         User user = userService.getCurrentUserObject();
         vehicle.setUser(user);
-        JobCard jobCard = new JobCard();
-        jobCard.setVehicle(vehicle);
-        jobCard.setJobStatus(JobStatus.ARRIVED);
-        vehicle.setJobCard(List.of(jobCard));
+        vehicle.setVehicleStatus(VehicleStatus.PENDING);
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return toDTO(savedVehicle);
     }
@@ -44,10 +46,35 @@ public class VehicleService {
         Vehicle vehicle = toEntity(dto);
         User user = (User) userService.findByEmail(dto.getUserEmail());
         vehicle.setUser(user);
+        vehicle.setVehicleStatus(VehicleStatus.APPROVED);
         JobCard jobCard = new JobCard();
         jobCard.setVehicle(vehicle);
         jobCard.setJobStatus(JobStatus.ARRIVED);
         vehicle.setJobCard(List.of(jobCard));
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+        return toDTO(savedVehicle);
+    }
+
+    @Transactional
+    public VehicleDTO approveVehicle(Long vehicleId) {
+
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
+
+        vehicle.setVehicleStatus(VehicleStatus.APPROVED);
+        JobCard jobCard = new JobCard();
+        jobCard.setVehicle(vehicle);
+        jobCard.setJobStatus(JobStatus.ARRIVED);
+        jobCardRepository.save(jobCard);
+        return toDTO(vehicleRepository.save(vehicle));
+    }
+
+    @Transactional
+    public VehicleDTO rejectVehicle(Long vehicleId) {
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
+
+        vehicle.setVehicleStatus(VehicleStatus.REJECTED);
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return toDTO(savedVehicle);
     }
@@ -82,9 +109,10 @@ public class VehicleService {
         return vehicleRepository.findDistinctByJobCard_JobStatus(status).stream().map(this::toDTO).toList();
     }
 
-    public List<VehicleDTO> getUserVehicleByStatus(JobStatus status){
+    public List<VehicleDTO> getUserVehicleByStatus(JobStatus status) {
         Long id = userService.getCurrentUser().getId();
-        List<VehicleDTO> vehicleDTOs =  vehicleRepository.findByUserIdAndJobCardJobStatus(id,status).stream().map(this::toDTO).toList();
+        List<VehicleDTO> vehicleDTOs = vehicleRepository.findByUserIdAndJobCardJobStatus(id, status).stream()
+                .map(this::toDTO).toList();
         return vehicleDTOs;
     }
 
@@ -100,12 +128,12 @@ public class VehicleService {
         return vehicle;
     }
 
-    public List<VehicleDTO> getServiceComplitedWhithinDays(Long days){
+    public List<VehicleDTO> getServiceComplitedWhithinDays(Long days) {
         LocalDateTime date = LocalDateTime.now().minusDays(days);
         return vehicleRepository.findByDeliveryTimeAfter(date).stream().map(this::toDTO).toList();
     }
 
-    public boolean isPresent(Long id){
+    public boolean isPresent(Long id) {
         return vehicleRepository.existsById(id);
     }
 
@@ -122,18 +150,21 @@ public class VehicleService {
                 .arrivalTime(dto.getArrivalTime())
                 .expectedTime(dto.getExpectedTime())
                 .deliveryTime(dto.getDeliveryTime())
+                .vehicleStatus(dto.getVehicleStatus())
                 .ownerName(dto.getOwnerName())
                 .build();
 
     }
 
     public VehicleDTO toDTO(Vehicle entity) {
+
         return VehicleDTO.builder()
                 .id(entity.getId())
                 .vehicleNumber(entity.getVehicleNumber())
                 .vehicleType(entity.getVehicleType())
                 .serviceType(entity.getServiceType())
                 .brand(entity.getBrand())
+                .vehicleStatus(entity.getVehicleStatus())
                 .model(entity.getModel())
                 .problemDescription(entity.getProblemDescription())
                 .solutionDescription(entity.getSolutionDescription())
@@ -142,5 +173,9 @@ public class VehicleService {
                 .deliveryTime(entity.getDeliveryTime())
                 .ownerName(entity.getOwnerName())
                 .build();
+    }
+
+    public List<VehicleDTO> getVehiclesByStatus(VehicleStatus pending) {
+        return vehicleRepository.findByVehicleStatus(pending).stream().map(this::toDTO).toList();
     }
 }
