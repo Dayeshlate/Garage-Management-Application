@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private VehicleService vehicleService;
@@ -43,8 +44,7 @@ public class AdminController {
         this.billService = billService;
     }
 
-    // ================================== Users
-    // =====================================================
+    // ================================== Users =====================================================
 
     @GetMapping("/getRegisterUserCount")
     public ResponseEntity getRegisterUserCunt(@RequestParam Long days) {
@@ -58,8 +58,7 @@ public class AdminController {
         return ResponseEntity.ok(count);
     }
 
-    // ================================== Bill
-    // =======================================================
+    // ================================== Bill =======================================================
 
     @GetMapping("/bill/getAllBills")
     public ResponseEntity<List<BillDTO>> getAllBills() {
@@ -78,8 +77,7 @@ public class AdminController {
         billService.updateLabourAmount(dto);
     }
 
-    // ================================== JobCard
-    // =======================================================
+    // ================================== JobCard=======================================================
 
     @GetMapping("/getActiveJobCardCountwithinDays")
     public ResponseEntity<Long> getActiveJobCardCountWhininDays(@RequestParam Long days) {
@@ -117,8 +115,7 @@ public class AdminController {
         return ResponseEntity.ok(allJobCardDTOs);
     }
 
-    // ======================================== Vehicle
-    // =================================================
+    // ======================================== Vehicle =================================================
 
     @GetMapping("/vehicle/get/{id}")
     public ResponseEntity<VehicleDTO> getvehicle(@PathVariable Long id) {
