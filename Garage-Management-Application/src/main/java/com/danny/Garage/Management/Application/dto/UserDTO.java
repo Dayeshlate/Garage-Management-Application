@@ -23,10 +23,6 @@ public class UserDTO{
     @Size(max=40)
     private String name;
 
-    @NotBlank(message = "Username not blank")
-    @Size(max = 20, min=2)
-    private String username;
-
     @NotBlank(message = "Password is not blank")
     private String password;
 

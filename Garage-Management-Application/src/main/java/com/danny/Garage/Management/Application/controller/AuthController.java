@@ -48,7 +48,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDTO dto) {
-        if (userService.existsByUsername(dto.getUsername())) {
+        if (userService.existsByEmail(dto.getEmail())) {
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Username already exists"));
         }

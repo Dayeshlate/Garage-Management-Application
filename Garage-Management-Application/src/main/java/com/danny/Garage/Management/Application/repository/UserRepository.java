@@ -16,10 +16,6 @@ import java.time.LocalDateTime;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByUsername(String username);
-
-    boolean existsByUsername(String username);
-
     boolean existsByEmail(String email);
 
     Optional<User> findById(Long id);
@@ -29,4 +25,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByCreatedAtAfter(LocalDateTime createdAt);
 
     List<User> findByRoleNot(Role role);
+
 }

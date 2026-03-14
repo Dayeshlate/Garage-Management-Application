@@ -48,10 +48,6 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
-    }
-
     public User findByEmail(String email){
         return userRepository.findByEmail(email).
             orElseThrow(()-> new RuntimeException("User not found with email"+ email));
@@ -134,7 +130,6 @@ public class UserService {
             .phone(user.getPhone())
             .role(user.getRole())
             .vehicle_ids(getVehicleIdsForUser(user))
-            .username(user.getUsername())
             .build();
     }
 
@@ -142,12 +137,15 @@ public class UserService {
         return User.builder()
                 .id(dto.getId())
                 .name(dto.getName())
-                .username(dto.getUsername())
                 .email(dto.getEmail())
                 .password(dto.getPassword())
                 .vehicle(vehicles)
                 .role(dto.getRole() != null ? dto.getRole() : Role.USER)
                 .phone(dto.getPhone())
                 .build();
+    }
+
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 }
