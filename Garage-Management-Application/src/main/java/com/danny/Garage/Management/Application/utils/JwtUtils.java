@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+
 import javax.crypto.SecretKey;
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,18 +20,23 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtils {
 
-    private final SecretKey SECRET_KEY =
-            Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-    private final long JWT_TOKEN_VALIDITY = 1000 * 60 * 60 * 10; // 10 hours
+    private final long JWT_TOKEN_VALIDITY = 1000 * 60 * 60 * 24;
 
-    // 🔹 Generate token
     public String generateToken(User user) {
 
         Map<String, Object> claims = new HashMap<>();
-
         claims.put("role", user.getRole().name());
-        return createToken(claims, user.getUsername());
+
+        return createToken(claims, user.getEmail());
+    }
+
+    public String generateToken(String email) {
+
+        Map<String, Object> claims = new HashMap<>();
+
+        return createToken(claims, email);
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
@@ -38,9 +44,8 @@ public class JwtUtils {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(
-                        new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
                 .signWith(SECRET_KEY)
                 .compact();
     }
@@ -53,11 +58,10 @@ public class JwtUtils {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public <T> T extractClaim(String token,
-                              Function<Claims, T> claimsResolver) {
+    public <T> T extractClaim(String token, Function<Claims, T> resolver) {
 
         final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        return resolver.apply(claims);
     }
 
     private Claims extractAllClaims(String token) {
@@ -76,6 +80,7 @@ public class JwtUtils {
     public boolean validateToken(String token, UserDetails userDetails) {
 
         final String username = extractUsername(token);
+
         return username.equals(userDetails.getUsername())
                 && !isTokenExpired(token);
     }

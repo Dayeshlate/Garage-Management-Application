@@ -59,11 +59,19 @@ public class User implements UserDetails {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    private String activationToken;
+
+
+    private Boolean isActive;
+
     @PrePersist
-    protected void onCreate(){
+    public void prePersist(){
+        if(this.isActive == null){
+            isActive = false;
+        }
         this.createdAt = LocalDateTime.now();
     }
-    
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_"+role.name()));
