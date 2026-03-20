@@ -1,7 +1,6 @@
 package com.danny.Garage.Management.Application.dto;
 
 import java.util.List;
-
 import com.danny.Garage.Management.Application.entity.Role;
 
 import jakarta.validation.constraints.Email;
