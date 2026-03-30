@@ -150,8 +150,10 @@ public class VehicleService {
                 .arrivalTime(dto.getArrivalTime())
                 .expectedTime(dto.getExpectedTime())
                 .deliveryTime(dto.getDeliveryTime())
-                .vehicleStatus(dto.getVehicleStatus())
+                .vehicleStatus(dto.getVehicleStatus() != null ? dto.getVehicleStatus() : VehicleStatus.PENDING)
                 .ownerName(dto.getOwnerName())
+                .ownerPhone(dto.getOwnerPhone())
+                .ownerEmail(dto.getOwnerEmail())
                 .build();
 
     }
@@ -172,6 +174,8 @@ public class VehicleService {
                 .expectedTime(entity.getExpectedTime())
                 .deliveryTime(entity.getDeliveryTime())
                 .ownerName(entity.getOwnerName())
+                .ownerPhone(entity.getOwnerPhone())
+                .ownerEmail(entity.getOwnerEmail())
                 .build();
     }
 

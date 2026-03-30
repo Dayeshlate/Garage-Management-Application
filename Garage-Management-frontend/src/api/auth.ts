@@ -5,7 +5,7 @@ export interface UserDTO {
   name: string;
   password?: string;
   email: string;
-  role: 'ADMIN' | 'USER';
+  role: 'ADMIN' | 'USER' | 'MECHANIC';
   phone: string;
   vehicle_ids: number[];
 }
@@ -27,7 +27,12 @@ export interface AuthResponse {
   user: UserDTO;
 }
 
+export interface RegisterResponse {
+  message: string;
+  userId: number;
+}
+
 export const authApi = {
-  login: (data: LoginRequest): Promise<AuthResponse> => apiClient.post('/auth/login', data),
-  signup: (data: SignupRequest): Promise<AuthResponse> => apiClient.post('/auth/signup', data),
+  login: (data: LoginRequest): Promise<AuthResponse> => apiClient.post('/api/auth/login', data),
+  signup: (data: SignupRequest): Promise<RegisterResponse> => apiClient.post('/api/auth/register', data),
 };

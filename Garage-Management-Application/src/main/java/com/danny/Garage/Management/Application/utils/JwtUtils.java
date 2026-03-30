@@ -4,9 +4,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.nio.charset.StandardCharsets;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -20,14 +22,23 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtils {
 
-    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final SecretKey secretKey;
 
-    private final long JWT_TOKEN_VALIDITY = 1000 * 60 * 60 * 24;
+    private final long jwtTokenValidity;
+
+    public JwtUtils(
+            @Value("${jwt.secret}") String jwtSecret,
+            @Value("${jwt.token-validity-ms:86400000}") long jwtTokenValidity) {
+
+        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        this.jwtTokenValidity = jwtTokenValidity;
+    }
 
     public String generateToken(User user) {
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRole().name());
+        String role = (user.getRole() != null) ? user.getRole().name() : "USER";
+        claims.put("role", role);
 
         return createToken(claims, user.getEmail());
     }
@@ -45,8 +56,8 @@ public class JwtUtils {
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
-                .signWith(SECRET_KEY)
+            .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity))
+            .signWith(secretKey)
                 .compact();
     }
 
@@ -67,7 +78,7 @@ public class JwtUtils {
     private Claims extractAllClaims(String token) {
 
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+            .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

@@ -57,8 +57,7 @@ public class Vehicle {
     @Size(min = 10)
     private String problemDescription;
     
-    @Column(nullable = false)
-    @Size(min = 10)
+    @Column(nullable = true)
     private String solutionDescription;
     
     @Column(nullable = false)
@@ -70,6 +69,12 @@ public class Vehicle {
     
     @Column(nullable = false)
     private String ownerName;
+
+    @Column(nullable = false)
+    private String ownerPhone;
+
+    @Column(nullable = false)
+    private String ownerEmail;
 
     @JsonIgnore
     @JoinColumn(name = "user_id")

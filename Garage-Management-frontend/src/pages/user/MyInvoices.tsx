@@ -1,50 +1,31 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Download, Eye, Receipt, Calendar, Car, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
-
-const invoices = [
-  {
-    id: 'INV-2024-042',
-    date: '2026-02-03',
-    vehicle: 'Honda Civic 2021',
-    service: 'Brake Replacement',
-    amount: 4500,
-    status: 'paid' as const,
-  },
-  {
-    id: 'INV-2024-038',
-    date: '2026-01-15',
-    vehicle: 'Toyota Camry 2022',
-    service: 'Full Service',
-    amount: 8200,
-    status: 'paid' as const,
-  },
-  {
-    id: 'INV-2024-045',
-    date: '2026-02-07',
-    vehicle: 'Toyota Camry 2022',
-    service: 'AC Repair',
-    amount: 3500,
-    status: 'pending' as const,
-  },
-  {
-    id: 'INV-2024-030',
-    date: '2025-12-20',
-    vehicle: 'Honda Civic 2021',
-    service: 'Oil Change',
-    amount: 1200,
-    status: 'paid' as const,
-  },
-];
+import { useInvoices } from '@/hooks/use-api';
 
 const statusConfig = {
-  paid: { icon: <CheckCircle className="h-4 w-4 text-green-500" />, label: 'Paid', color: 'text-green-600', border: 'border-border', bg: 'bg-green-500/5' },
-  pending: { icon: <Clock className="h-4 w-4 text-yellow-500" />, label: 'Pending', color: 'text-yellow-600', border: 'border-yellow-500/30', bg: 'bg-yellow-500/5' },
-  overdue: { icon: <AlertCircle className="h-4 w-4 text-destructive" />, label: 'Overdue', color: 'text-destructive', border: 'border-destructive/30', bg: 'bg-destructive/5' },
+  paid: { icon: <CheckCircle className="h-4 w-4 text-green-500" />, label: 'Paid', color: 'text-green-600', border: 'border-border' },
+  pending: { icon: <Clock className="h-4 w-4 text-yellow-500" />, label: 'Pending', color: 'text-yellow-600', border: 'border-yellow-500/30' },
+  overdue: { icon: <AlertCircle className="h-4 w-4 text-destructive" />, label: 'Overdue', color: 'text-destructive', border: 'border-destructive/30' },
 };
 
 export const MyInvoices: React.FC = () => {
   const { formatCurrency } = useSettings();
+  const { data, isLoading, error } = useInvoices();
+
+  const invoices = useMemo(
+    () =>
+      (data ?? []).map((invoice) => ({
+        id: `INV-${invoice.id}`,
+        date: invoice.billDate,
+        vehicle: `Vehicle #${invoice.jobCard_id}`,
+        service: `Job Card #${invoice.jobCard_id}`,
+        amount: invoice.totalBill ?? 0,
+        status: invoice.billStatus === 'PAID' ? 'paid' : 'pending',
+      })),
+    [data]
+  );
+
   return (
     <div className="space-y-6">
       <div className="page-header">
@@ -54,7 +35,6 @@ export const MyInvoices: React.FC = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-card rounded-xl border border-border p-5">
           <p className="text-sm text-muted-foreground">Total Spent</p>
@@ -74,7 +54,9 @@ export const MyInvoices: React.FC = () => {
         </div>
       </div>
 
-      {/* Invoice Cards */}
+      {isLoading && <p className="text-sm text-muted-foreground">Loading invoices...</p>}
+      {error && <p className="text-sm text-destructive">Failed to load invoices from database.</p>}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {invoices.map((inv) => {
           const config = statusConfig[inv.status] || statusConfig.pending;
@@ -83,7 +65,6 @@ export const MyInvoices: React.FC = () => {
               key={inv.id}
               className={`bg-card rounded-xl border p-6 ${config.border}`}
             >
-              {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
@@ -100,7 +81,6 @@ export const MyInvoices: React.FC = () => {
                 </div>
               </div>
 
-              {/* Details grid */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
@@ -124,7 +104,6 @@ export const MyInvoices: React.FC = () => {
                 </div>
               </div>
 
-              {/* Amount & Actions */}
               <div className="mt-4 flex items-center justify-between pt-4 border-t border-border">
                 <div>
                   <p className="text-xs text-muted-foreground">Amount</p>
@@ -139,14 +118,6 @@ export const MyInvoices: React.FC = () => {
                   </button>
                 </div>
               </div>
-
-              {inv.status === 'pending' && (
-                <div className="mt-4 p-3 bg-yellow-500/5 rounded-lg border border-yellow-500/20">
-                  <p className="text-xs text-muted-foreground">
-                    This invoice is pending payment. Please complete the payment to avoid late fees.
-                  </p>
-                </div>
-              )}
             </div>
           );
         })}

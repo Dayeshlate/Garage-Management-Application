@@ -1,15 +1,38 @@
-import React from 'react';
-import { Car, ClipboardList, Receipt, ArrowRight, CheckCircle, Clock, Wrench } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Car, ClipboardList, Receipt, ArrowRight, Wrench } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StatCard } from '@/components/StatCard';
 import { StatusBadge, StatusType } from '@/components/StatusBadge';
+import { useInvoices, useMyVehicles, useUserJobCards } from '@/hooks/use-api';
 
-const activeServices = [
-  { id: 'JC-1042', vehicle: 'Toyota Camry 2022', service: 'Full Service', status: 'in-progress' as StatusType },
-  { id: 'JC-1045', vehicle: 'Toyota Camry 2022', service: 'AC Repair', status: 'pending' as StatusType },
-];
+const toStatus = (status: string): StatusType => {
+  if (status === 'IN_SERVICE' || status === 'WAITING_FOR_PART') return 'in-progress';
+  if (status === 'COMPLETED') return 'completed';
+  if (status === 'DELIVERED') return 'completed';
+  return 'pending';
+};
 
 export const UserDashboard: React.FC = () => {
+  const { data: vehiclesData } = useMyVehicles();
+  const { data: jobCardsData } = useUserJobCards();
+  const { data: invoicesData } = useInvoices();
+
+  const activeServices = useMemo(
+    () =>
+      (jobCardsData ?? [])
+        .filter((job) => (job.jobStatus ?? job.JobStatus) !== 'DELIVERED')
+        .slice(0, 5)
+        .map((job) => ({
+          id: `JC-${job.id}`,
+          vehicle: job.vehicleNumber
+            ? `${job.vehicleBrand ?? 'Vehicle'} ${job.vehicleModel ?? ''} (${job.vehicleNumber})`.trim()
+            : `Vehicle #${job.vehicle_id ?? job.Vehicle_id ?? 'N/A'}`,
+          service: `Spare Parts: ${(job.sparePart_id ?? job.SparePart_id)?.length ?? 0}`,
+          status: toStatus(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
+        })),
+    [jobCardsData]
+  );
+
   return (
     <div className="space-y-6">
       <div className="page-header">
@@ -20,12 +43,11 @@ export const UserDashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="My Vehicles" value="2" icon={Car} />
-        <StatCard title="Active Services" value="2" icon={ClipboardList} />
-        <StatCard title="Total Invoices" value="4" icon={Receipt} />
+        <StatCard title="My Vehicles" value={String((vehiclesData ?? []).length)} icon={Car} />
+        <StatCard title="Active Services" value={String(activeServices.length)} icon={ClipboardList} />
+        <StatCard title="Total Invoices" value={String((invoicesData ?? []).length)} icon={Receipt} />
       </div>
 
-      {/* Active Services */}
       <div className="bg-card rounded-xl border border-border">
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground">Active Services</h2>
@@ -34,6 +56,9 @@ export const UserDashboard: React.FC = () => {
           </Link>
         </div>
         <div className="divide-y divide-border">
+          {activeServices.length === 0 && (
+            <div className="p-4 text-sm text-muted-foreground">No active services found.</div>
+          )}
           {activeServices.map((svc) => (
             <div key={svc.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
               <div className="flex items-center gap-4">

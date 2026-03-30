@@ -17,7 +17,6 @@ import com.danny.Garage.Management.Application.repository.SparePartRepository;
 public class SparePartService {
 
     private SparePartRepository sparePartRepository;
-    private JobCardRepository jobCardReository;
     private JobCardRepository jobCardRepository;
 
     public SparePartService(SparePartRepository sparePartRepository,JobCardRepository jobCardRepository){
@@ -28,7 +27,7 @@ public class SparePartService {
     public SparePartDTO createSparePart(SparePartDTO dto){
         Set<JobCard> Jobcards = dto.getJobCardIds() == null 
                 ? Collections.emptySet() 
-                : jobCardReository.findAllById(dto.getJobCardIds()).stream().collect(Collectors.toSet());
+                : jobCardRepository.findAllById(dto.getJobCardIds()).stream().collect(Collectors.toSet());
 
         SparePart sparePart = toEntity(dto, Jobcards);
         SparePart savedSparePart = sparePartRepository.save(sparePart);
@@ -56,7 +55,7 @@ public class SparePartService {
     public Set<JobCard> getAllJobCardsWithSparepart(SparePartDTO dto){
         Set<JobCard> Jobcards = dto.getJobCardIds() == null 
                 ? Collections.emptySet() 
-                : jobCardReository.findAllById(dto.getJobCardIds()).stream().collect(Collectors.toSet());
+                : jobCardRepository.findAllById(dto.getJobCardIds()).stream().collect(Collectors.toSet());
 
         return Jobcards;
     }

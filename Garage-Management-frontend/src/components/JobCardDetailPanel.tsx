@@ -15,7 +15,7 @@ interface SparePart {
   stock: number;
 }
 
-interface JobCardDetail {
+export interface JobCardDetail {
   id: string;
   jobNumber: string;
   customer: string;
@@ -64,48 +64,80 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
   const [selectedPart, setSelectedPart] = useState('');
   const [editingDueDate, setEditingDueDate] = useState(job.dueDate);
   const parts = job.spareParts || [];
-  const steps = job.serviceSteps || [
-    { label: 'Vehicle Received', done: false },
-    { label: 'Inspection', done: false },
-    { label: 'Service In Progress', done: false },
-    { label: 'Quality Check', done: false },
-    { label: 'Ready for Pickup', done: false },
-  ];
+  const getStepsFromStatus = (status: StatusType): ServiceStep[] => {
+    if (status === 'completed') {
+      return [
+        { label: 'Vehicle Received', done: true },
+        { label: 'Inspection', done: true },
+        { label: 'Service In Progress', done: true },
+        { label: 'Quality Check', done: true },
+        { label: 'Ready for Pickup', done: true },
+      ];
+    }
+
+    if (status === 'in-progress') {
+      return [
+        { label: 'Vehicle Received', done: true },
+        { label: 'Inspection', done: true },
+        { label: 'Service In Progress', done: false, active: true },
+        { label: 'Quality Check', done: false },
+        { label: 'Ready for Pickup', done: false },
+      ];
+    }
+
+    return [
+      { label: 'Vehicle Received', done: false, active: true },
+      { label: 'Inspection', done: false },
+      { label: 'Service In Progress', done: false },
+      { label: 'Quality Check', done: false },
+      { label: 'Ready for Pickup', done: false },
+    ];
+  };
+
+  const [draftStatus, setDraftStatus] = useState<StatusType>(job.status);
+  const [draftSteps, setDraftSteps] = useState<ServiceStep[]>(job.serviceSteps || getStepsFromStatus(job.status));
+  const steps = draftSteps;
 
   // Update editingDueDate when job changes
   useEffect(() => {
     setEditingDueDate(job.dueDate);
   }, [job.dueDate]);
 
+  useEffect(() => {
+    setDraftStatus(job.status);
+    setDraftSteps(job.serviceSteps || getStepsFromStatus(job.status));
+  }, [job.id, job.status, job.serviceSteps]);
+
+  const handleStatusSelect = (status: StatusType) => {
+    setDraftStatus(status);
+    const mappedSteps = getStepsFromStatus(status);
+    setDraftSteps(mappedSteps);
+    onUpdateSteps(job.id, mappedSteps);
+    onStatusChange(job.id, status);
+  };
+
   const handleStepChange = (stepIndex: number) => {
-    const newSteps = steps.map((s, i) => {
-      if (i <= stepIndex) {
-        return { ...s, done: !steps[stepIndex].done ? true : i < stepIndex, active: false };
-      }
-      return { ...s, done: false, active: false };
-    });
+    const isLastStep = stepIndex === steps.length - 1;
+    const newSteps = steps.map((s, i) => ({
+      ...s,
+      done: isLastStep ? i <= stepIndex : i < stepIndex,
+      active: !isLastStep && i === stepIndex,
+    }));
 
-    // Set the active step
-    const firstUndone = newSteps.findIndex((s) => !s.done);
-    if (firstUndone >= 0) {
-      newSteps[firstUndone].active = true;
+    let nextStatus: StatusType = 'pending';
+    if (isLastStep) {
+      nextStatus = 'completed';
+    } else if (stepIndex >= 2) {
+      nextStatus = 'in-progress';
     }
 
-    // Auto-update job status based on steps
-    const allDone = newSteps.every((s) => s.done);
-    const anyInProgress = newSteps.some((s, i) => s.done && i >= 2);
-    if (allDone) {
-      onStatusChange(job.id, 'completed');
-    } else if (anyInProgress) {
-      onStatusChange(job.id, 'in-progress');
-    } else {
-      onStatusChange(job.id, 'pending');
-    }
-
+    setDraftStatus(nextStatus);
+    setDraftSteps(newSteps);
+    onStatusChange(job.id, nextStatus);
     onUpdateSteps(job.id, newSteps);
     toast({
       title: 'Progress updated',
-      description: `Step "${steps[stepIndex].label}" ${!steps[stepIndex].done ? 'completed' : 'reverted'}`,
+      description: `Current stage set to "${steps[stepIndex].label}"`,
     });
   };
 
@@ -156,8 +188,8 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
           <div className="flex items-center gap-3">
             <span className="font-mono text-lg font-bold text-accent">{job.jobNumber}</span>
             <div className="flex items-center gap-2">
-              <StatusBadge status={job.status} />
-              <Select value={job.status} onValueChange={(status) => onStatusChange(job.id, status as StatusType)}>
+              <StatusBadge status={draftStatus} />
+              <Select value={draftStatus} onValueChange={(status) => handleStatusSelect(status as StatusType)}>
                 <SelectTrigger className="w-40 h-8">
                   <SelectValue />
                 </SelectTrigger>
@@ -244,6 +276,7 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
             </div>
             <ServiceProgressTracker
               steps={steps}
+              status={draftStatus}
               onStepChange={handleStepChange}
               editable
             />

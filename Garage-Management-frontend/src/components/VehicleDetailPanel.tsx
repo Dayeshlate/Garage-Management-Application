@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Car, User, Wrench, Calendar, Plus } from 'lucide-react';
+import { X, Car, User, Wrench, Calendar, Plus, Check, X as XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
@@ -26,6 +26,10 @@ interface VehicleDetailPanelProps {
   open: boolean;
   onClose: () => void;
   onUpdate: (id: string, updates: Partial<Vehicle>) => void;
+  isAdmin?: boolean;
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
+  isLoadingApproval?: boolean;
 }
 
 export const VehicleDetailPanel: React.FC<VehicleDetailPanelProps> = ({
@@ -33,6 +37,10 @@ export const VehicleDetailPanel: React.FC<VehicleDetailPanelProps> = ({
   open,
   onClose,
   onUpdate,
+  isAdmin = false,
+  onApprove,
+  onReject,
+  isLoadingApproval = false,
 }) => {
   const [editingColor, setEditingColor] = useState(vehicle.color);
   const [editingPhone, setEditingPhone] = useState(vehicle.ownerPhone || '');
@@ -249,6 +257,29 @@ export const VehicleDetailPanel: React.FC<VehicleDetailPanelProps> = ({
               <Plus className="h-4 w-4" />
               Schedule Service
             </Button>
+
+            {/* Approval Actions for Admin */}
+            {isAdmin && vehicle.status === 'pending' && (
+              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
+                <Button
+                  onClick={() => onApprove?.(vehicle.id)}
+                  disabled={isLoadingApproval}
+                  className="gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Check className="h-4 w-4" />
+                  {isLoadingApproval ? 'Approving...' : 'Approve'}
+                </Button>
+                <Button
+                  onClick={() => onReject?.(vehicle.id)}
+                  disabled={isLoadingApproval}
+                  variant="destructive"
+                  className="gap-2"
+                >
+                  <XIcon className="h-4 w-4" />
+                  {isLoadingApproval ? 'Rejecting...' : 'Reject'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
-@RequestMapping("user/vehicle")
+@RequestMapping("/user/vehicle")
 public class VehicleController {
 
     private final VehicleService vehicleService;

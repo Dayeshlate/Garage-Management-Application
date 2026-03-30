@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
-import { Plus, Search, Car, Calendar, MoreVertical, CheckCircle, XCircle, Eye, Clock } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Plus, Search, Car, Calendar, MoreVertical, Eye, Clock } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import { AddVehicleDialog } from '@/components/AddVehicleDialog';
 import { VehicleDetailPanel } from '@/components/VehicleDetailPanel';
-import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { StatusBadge, StatusType } from '@/components/StatusBadge';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -13,6 +11,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useCreateVehicle, usePendingVehicles, useVehicles } from '@/hooks/use-api';
+import type { CreateVehicleDto } from '@/api/vehicles';
+import { vehiclesApi } from '@/api/vehicles';
 
 interface Vehicle {
   id: string;
@@ -31,59 +32,84 @@ interface Vehicle {
   submittedAt?: string;
 }
 
-const mockVehicles: Vehicle[] = [
-  { id: '1', make: 'Toyota', model: 'Camry', year: 2022, licensePlate: 'ABC-1234', vin: '1HGBH41JXMN109186', color: 'Silver', owner: 'John Smith', ownerEmail: 'john@email.com', ownerPhone: '+1234567890', lastService: '2024-03-15', totalServices: 5, status: 'approved' },
-  { id: '2', make: 'Honda', model: 'Civic', year: 2021, licensePlate: 'XYZ-5678', vin: '2HGBH41JXMN109187', color: 'Black', owner: 'Sarah Wilson', ownerEmail: 'sarah@email.com', ownerPhone: '+1234567891', lastService: '2024-03-10', totalServices: 3, status: 'approved' },
-  { id: '3', make: 'Ford', model: 'F-150', year: 2020, licensePlate: 'DEF-9012', vin: '3HGBH41JXMN109188', color: 'Blue', owner: 'Mike Johnson', lastService: '2024-02-28', totalServices: 8, status: 'approved' },
-  { id: '4', make: 'BMW', model: 'X5', year: 2023, licensePlate: 'GHI-3456', vin: '4HGBH41JXMN109189', color: 'White', owner: 'Emily Davis', lastService: '2024-03-18', totalServices: 2, status: 'approved' },
-  { id: '5', make: 'Audi', model: 'A4', year: 2021, licensePlate: 'JKL-7890', vin: '5HGBH41JXMN109190', color: 'Red', owner: 'Robert Brown', lastService: '2024-03-05', totalServices: 4, status: 'approved' },
-];
-
-const mockPendingVehicles: Vehicle[] = [
-  { id: '101', make: 'BMW', model: 'X3', year: 2023, licensePlate: 'KA-02-EF-9012', vin: '3HGBH41JXMN109188', color: 'Black', owner: 'John Smith', ownerEmail: 'john@email.com', ownerPhone: '+1234567890', lastService: '', totalServices: 0, status: 'pending', submittedAt: '2026-03-05' },
-  { id: '102', make: 'Mercedes', model: 'E-Class', year: 2024, licensePlate: 'KA-03-GH-3456', vin: '6HGBH41JXMN109191', color: 'White', owner: 'Sarah Wilson', ownerEmail: 'sarah@email.com', ownerPhone: '+1234567891', lastService: '', totalServices: 0, status: 'pending', submittedAt: '2026-03-06' },
-  { id: '103', make: 'Tesla', model: 'Model Y', year: 2025, licensePlate: 'KA-04-IJ-7890', vin: '8HGBH41JXMN109193', color: 'Red', owner: 'Emily Davis', ownerEmail: 'emily@email.com', ownerPhone: '+1234567892', lastService: '', totalServices: 0, status: 'pending', submittedAt: '2026-03-07' },
-];
-
 export const Vehicles: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [vehicles, setVehicles] = useState(mockVehicles);
-  const [pendingVehicles, setPendingVehicles] = useState(mockPendingVehicles);
-  const [confirmAction, setConfirmAction] = useState<{ type: 'approve' | 'reject'; vehicle: Vehicle } | null>(null);
   const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
+  const [isLoadingApproval, setIsLoadingApproval] = useState(false);
 
-  const handleAddVehicle = (vehicle: Omit<Vehicle, 'id' | 'lastService' | 'totalServices' | 'status'>) => {
-    const newVehicle: Vehicle = {
-      ...vehicle,
-      id: String(vehicles.length + 1),
-      lastService: new Date().toISOString().split('T')[0],
+  const { data: allVehiclesData, isLoading: isLoadingVehicles, error: vehiclesError, refetch: refetchVehicles } = useVehicles();
+  const { data: pendingVehiclesData, isLoading: isLoadingPending, error: pendingError, refetch: refetchPending } = usePendingVehicles();
+  const createVehicle = useCreateVehicle();
+
+  const mapVehicle = (vehicle: any): Vehicle => {
+    const modelText = vehicle?.model ?? '';
+    const yearCandidate = Number(String(modelText).match(/\d{4}/)?.[0]);
+    const year = Number.isFinite(yearCandidate) ? yearCandidate : new Date().getFullYear();
+    const status = vehicle?.vehicleStatus === 'PENDING' ? 'pending' : 'approved';
+
+    return {
+      id: String(vehicle?.id),
+      make: vehicle?.brand ?? 'Unknown',
+      model: modelText || 'Unknown',
+      year,
+      licensePlate: vehicle?.vehicleNumber ?? '-',
+      vin: vehicle?.vehicleType ?? '-',
+      color: 'Unknown',
+      owner: vehicle?.ownerName ?? vehicle?.userEmail ?? 'Unknown',
+      ownerEmail: vehicle?.ownerEmail ?? vehicle?.userEmail,
+      ownerPhone: vehicle?.ownerPhone ?? '',
+      lastService: vehicle?.deliveryTime ?? vehicle?.expectedTime ?? vehicle?.arrivalTime ?? '',
       totalServices: 0,
-      status: 'approved',
+      status,
+      submittedAt: vehicle?.arrivalTime ?? '',
     };
-    setVehicles([newVehicle, ...vehicles]);
-    toast({ title: 'Vehicle added', description: `${vehicle.year} ${vehicle.make} ${vehicle.model} has been added.` });
   };
 
-  const handleApprove = (vehicle: Vehicle) => {
-    setPendingVehicles((prev) => prev.filter((v) => v.id !== vehicle.id));
-    setVehicles((prev) => [{ ...vehicle, status: 'approved' as const }, ...prev]);
-    toast({ title: 'Vehicle approved', description: `${vehicle.year} ${vehicle.make} ${vehicle.model} has been approved.` });
-    setConfirmAction(null);
-  };
+  const vehicles = useMemo(() => (allVehiclesData ?? []).map(mapVehicle).filter((v) => v.status !== 'pending'), [allVehiclesData]);
+  const pendingVehicles = useMemo(() => (pendingVehiclesData ?? []).map(mapVehicle), [pendingVehiclesData]);
 
-  const handleReject = (vehicle: Vehicle) => {
-    setPendingVehicles((prev) => prev.filter((v) => v.id !== vehicle.id));
-    toast({ title: 'Vehicle rejected', description: `${vehicle.year} ${vehicle.make} ${vehicle.model} has been rejected.` });
-    setConfirmAction(null);
+  const handleAddVehicle = async (vehicle: CreateVehicleDto) => {
+    try {
+      await createVehicle.mutateAsync(vehicle);
+      await Promise.all([refetchVehicles(), refetchPending()]);
+      toast({ title: 'Vehicle added', description: `${vehicle.brand} ${vehicle.model} has been added.` });
+    } catch (error) {
+      toast({ title: 'Failed to add vehicle', description: 'Please verify backend vehicle fields and try again.', variant: 'destructive' });
+    }
   };
 
   const handleUpdateVehicle = (id: string, updates: Partial<Vehicle>) => {
-    setVehicles((prev) =>
-      prev.map((v) => (v.id === id ? { ...v, ...updates } : v))
-    );
     if (viewVehicle?.id === id) {
-      setViewVehicle((prev) => prev ? { ...prev, ...updates } : prev);
+      setViewVehicle((prev) => (prev ? { ...prev, ...updates } : prev));
+    }
+  };
+
+  const handleApproveVehicle = async (id: string) => {
+    try {
+      setIsLoadingApproval(true);
+      await vehiclesApi.approve(Number(id));
+      toast({ title: 'Vehicle approved', description: 'Vehicle has been approved successfully.' });
+      setViewVehicle(null);
+      await Promise.all([refetchVehicles(), refetchPending()]);
+    } catch (error) {
+      toast({ title: 'Failed to approve vehicle', description: 'Please try again.', variant: 'destructive' });
+    } finally {
+      setIsLoadingApproval(false);
+    }
+  };
+
+  const handleRejectVehicle = async (id: string) => {
+    try {
+      setIsLoadingApproval(true);
+      await vehiclesApi.reject(Number(id));
+      toast({ title: 'Vehicle rejected', description: 'Vehicle has been rejected successfully.' });
+      setViewVehicle(null);
+      await Promise.all([refetchVehicles(), refetchPending()]);
+    } catch (error) {
+      toast({ title: 'Failed to reject vehicle', description: 'Please try again.', variant: 'destructive' });
+    } finally {
+      setIsLoadingApproval(false);
     }
   };
 
@@ -160,10 +186,6 @@ export const Vehicles: React.FC = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setViewVehicle(vehicle)}>View Details</DropdownMenuItem>
-            <DropdownMenuItem>Edit Vehicle</DropdownMenuItem>
-            <DropdownMenuItem>Service History</DropdownMenuItem>
-            <DropdownMenuItem>Create Job Card</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -198,13 +220,6 @@ export const Vehicles: React.FC = () => {
       ),
     },
     {
-      key: 'vin',
-      header: 'VIN',
-      render: (vehicle: Vehicle) => (
-        <span className="text-sm font-mono text-muted-foreground">{vehicle.vin}</span>
-      ),
-    },
-    {
       key: 'owner',
       header: 'Submitted By',
       render: (vehicle: Vehicle) => (
@@ -228,36 +243,19 @@ export const Vehicles: React.FC = () => {
       key: 'actions',
       header: 'Actions',
       render: (vehicle: Vehicle) => (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setViewVehicle(vehicle)}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
-            title="View Details"
-          >
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </button>
-          <button
-            onClick={() => setConfirmAction({ type: 'approve', vehicle })}
-            className="p-2 hover:bg-green-500/10 rounded-lg transition-colors"
-            title="Approve"
-          >
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </button>
-          <button
-            onClick={() => setConfirmAction({ type: 'reject', vehicle })}
-            className="p-2 hover:bg-destructive/10 rounded-lg transition-colors"
-            title="Reject"
-          >
-            <XCircle className="h-4 w-4 text-destructive" />
-          </button>
-        </div>
+        <button
+          onClick={() => setViewVehicle(vehicle)}
+          className="p-2 hover:bg-muted rounded-lg transition-colors"
+          title="View Details"
+        >
+          <Eye className="h-4 w-4 text-muted-foreground" />
+        </button>
       ),
     },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="page-header">
         <div>
           <h1 className="page-title">Vehicles</h1>
@@ -269,7 +267,6 @@ export const Vehicles: React.FC = () => {
         </button>
       </div>
 
-      {/* Search */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -283,7 +280,9 @@ export const Vehicles: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats */}
+      {(isLoadingVehicles || isLoadingPending) && <p className="text-sm text-muted-foreground">Loading vehicles...</p>}
+      {(vehiclesError || pendingError) && <p className="text-sm text-destructive">Failed to load vehicles from database.</p>}
+
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">Approved Vehicles</p>
@@ -301,11 +300,10 @@ export const Vehicles: React.FC = () => {
         </div>
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">This Month</p>
-          <p className="text-2xl font-bold text-foreground mt-1">12</p>
+          <p className="text-2xl font-bold text-foreground mt-1">{vehicles.length + pendingVehicles.length}</p>
         </div>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue="approved" className="space-y-4">
         <TabsList>
           <TabsTrigger value="approved">
@@ -338,26 +336,12 @@ export const Vehicles: React.FC = () => {
           open={!!viewVehicle}
           onClose={() => setViewVehicle(null)}
           onUpdate={handleUpdateVehicle}
+          isAdmin={true}
+          onApprove={handleApproveVehicle}
+          onReject={handleRejectVehicle}
+          isLoadingApproval={isLoadingApproval}
         />
       )}
-
-      {/* Confirm Dialog */}
-      <ConfirmDialog
-        open={!!confirmAction}
-        onOpenChange={() => setConfirmAction(null)}
-        title={confirmAction?.type === 'approve' ? 'Approve Vehicle' : 'Reject Vehicle'}
-        description={
-          confirmAction?.type === 'approve'
-            ? `Are you sure you want to approve the ${confirmAction.vehicle.year} ${confirmAction.vehicle.make} ${confirmAction.vehicle.model} submitted by ${confirmAction.vehicle.owner}?`
-            : `Are you sure you want to reject the ${confirmAction?.vehicle.year} ${confirmAction?.vehicle.make} ${confirmAction?.vehicle.model} submitted by ${confirmAction?.vehicle.owner}?`
-        }
-        confirmText={confirmAction?.type === 'approve' ? 'Approve' : 'Reject'}
-        variant={confirmAction?.type === 'reject' ? 'destructive' : 'default'}
-        onConfirm={() => {
-          if (confirmAction?.type === 'approve') handleApprove(confirmAction.vehicle);
-          else if (confirmAction?.type === 'reject') handleReject(confirmAction.vehicle);
-        }}
-      />
     </div>
   );
 };

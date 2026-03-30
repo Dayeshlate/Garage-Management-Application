@@ -1,56 +1,59 @@
 import React from 'react';
-import { Clock, CheckCircle, Wrench, AlertCircle } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { StatusBadge, StatusType } from '@/components/StatusBadge';
+import { ServiceProgressTracker } from '@/components/ServiceProgressTracker';
+import { useUserJobCards } from '@/hooks/use-api';
 
-const myServices = [
-  {
-    id: 'JC-1042',
-    vehicle: 'Toyota Camry 2022',
-    plateNo: 'KA-01-AB-1234',
-    service: 'Full Service',
-    status: 'in-progress' as StatusType,
-    estimatedDate: '2026-02-10',
-    steps: [
-      { label: 'Vehicle Received', done: true },
-      { label: 'Inspection', done: true },
-      { label: 'Service In Progress', done: false, active: true },
-      { label: 'Quality Check', done: false },
-      { label: 'Ready for Pickup', done: false },
-    ],
-  },
-  {
-    id: 'JC-1038',
-    vehicle: 'Honda Civic 2021',
-    plateNo: 'KA-01-CD-5678',
-    service: 'Brake Replacement',
-    status: 'completed' as StatusType,
-    estimatedDate: '2026-02-03',
-    steps: [
-      { label: 'Vehicle Received', done: true },
-      { label: 'Inspection', done: true },
-      { label: 'Service In Progress', done: true },
-      { label: 'Quality Check', done: true },
-      { label: 'Ready for Pickup', done: true },
-    ],
-  },
-  {
-    id: 'JC-1045',
-    vehicle: 'Toyota Camry 2022',
-    plateNo: 'KA-01-AB-1234',
-    service: 'AC Repair',
-    status: 'pending' as StatusType,
-    estimatedDate: '2026-02-15',
-    steps: [
-      { label: 'Vehicle Received', done: true },
-      { label: 'Inspection', done: false, active: true },
-      { label: 'Service In Progress', done: false },
-      { label: 'Quality Check', done: false },
-      { label: 'Ready for Pickup', done: false },
-    ],
-  },
-];
+const toStatus = (status: string): StatusType => {
+  if (status === 'IN_SERVICE' || status === 'WAITING_FOR_PART') return 'in-progress';
+  if (status === 'COMPLETED') return 'completed';
+  if (status === 'DELIVERED') return 'completed';
+  return 'pending';
+};
+
+const buildSteps = (status: string) => {
+  const pending = [
+    { label: 'Vehicle Received', done: false, active: true },
+    { label: 'Inspection', done: false },
+    { label: 'Service In Progress', done: false },
+    { label: 'Quality Check', done: false },
+    { label: 'Ready for Pickup', done: false },
+  ];
+  const inProgress = [
+    { label: 'Vehicle Received', done: true },
+    { label: 'Inspection', done: true },
+    { label: 'Service In Progress', done: false, active: true },
+    { label: 'Quality Check', done: false },
+    { label: 'Ready for Pickup', done: false },
+  ];
+  const completed = [
+    { label: 'Vehicle Received', done: true },
+    { label: 'Inspection', done: true },
+    { label: 'Service In Progress', done: true },
+    { label: 'Quality Check', done: true },
+    { label: 'Ready for Pickup', done: true },
+  ];
+
+  if (status === 'COMPLETED') return completed;
+  if (status === 'IN_SERVICE' || status === 'WAITING_FOR_PART') return inProgress;
+  return pending;
+};
 
 export const TrackService: React.FC = () => {
+  const { data, isLoading, error } = useUserJobCards();
+
+  const myServices = (data ?? []).map((job) => ({
+    id: `JC-${job.id}`,
+    vehicle: job.vehicleNumber
+      ? `${job.vehicleBrand ?? 'Vehicle'} ${job.vehicleModel ?? ''}`.trim()
+      : `Vehicle #${job.vehicle_id ?? job.Vehicle_id ?? 'N/A'}`,
+    plateNo: job.vehicleNumber ?? '-',
+    service: `Spare Parts: ${(job.sparePart_id ?? job.SparePart_id)?.length ?? 0}`,
+    status: toStatus(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
+    estimatedDate: new Date().toISOString().split('T')[0],
+    steps: buildSteps(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
+  }));
+
   return (
     <div className="space-y-6">
       <div className="page-header">
@@ -59,6 +62,9 @@ export const TrackService: React.FC = () => {
           <p className="text-muted-foreground mt-1">Monitor the progress of your vehicle services.</p>
         </div>
       </div>
+
+      {isLoading && <p className="text-sm text-muted-foreground">Loading services...</p>}
+      {error && <p className="text-sm text-destructive">Failed to load service status from database.</p>}
 
       <div className="space-y-4">
         {myServices.map((service) => (
@@ -82,36 +88,7 @@ export const TrackService: React.FC = () => {
               </div>
             </div>
 
-            {/* Progress Steps */}
-            <div className="flex items-center gap-0">
-              {service.steps.map((step, i) => (
-                <React.Fragment key={i}>
-                  <div className="flex flex-col items-center text-center flex-1">
-                    <div className={`flex h-9 w-9 items-center justify-center rounded-full mb-2 ${
-                      step.done
-                        ? 'bg-accent text-accent-foreground'
-                        : step.active
-                        ? 'bg-accent/20 text-accent border-2 border-accent'
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {step.done ? (
-                        <CheckCircle className="h-5 w-5" />
-                      ) : step.active ? (
-                        <Wrench className="h-4 w-4" />
-                      ) : (
-                        <Clock className="h-4 w-4" />
-                      )}
-                    </div>
-                    <span className={`text-xs ${step.done || step.active ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                      {step.label}
-                    </span>
-                  </div>
-                  {i < service.steps.length - 1 && (
-                    <div className={`h-0.5 flex-1 -mt-6 ${step.done ? 'bg-accent' : 'bg-border'}`} />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+            <ServiceProgressTracker steps={service.steps} status={service.status} />
           </div>
         ))}
       </div>

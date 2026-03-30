@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Search, Phone, Mail, MoreVertical } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import { useSettings } from '@/context/SettingsContext';
+import { useCustomers } from '@/hooks/use-api';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,32 +11,29 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface Customer {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone: string;
-  address: string;
   vehicleCount: number;
   totalSpent: number;
-  createdAt: string;
 }
-
-const mockCustomers: Customer[] = [
-  { id: '1', name: 'John Smith', email: 'john.smith@email.com', phone: '+1 234-567-8901', address: '123 Main St, City', vehicleCount: 2, totalSpent: 2450, createdAt: '2024-01-15' },
-  { id: '2', name: 'Sarah Wilson', email: 'sarah.w@email.com', phone: '+1 234-567-8902', address: '456 Oak Ave, Town', vehicleCount: 1, totalSpent: 890, createdAt: '2024-02-20' },
-  { id: '3', name: 'Mike Johnson', email: 'mike.j@email.com', phone: '+1 234-567-8903', address: '789 Pine Rd, Village', vehicleCount: 3, totalSpent: 5200, createdAt: '2024-01-08' },
-  { id: '4', name: 'Emily Davis', email: 'emily.d@email.com', phone: '+1 234-567-8904', address: '321 Elm St, Metro', vehicleCount: 1, totalSpent: 1100, createdAt: '2024-03-01' },
-  { id: '5', name: 'Robert Brown', email: 'robert.b@email.com', phone: '+1 234-567-8905', address: '654 Maple Dr, City', vehicleCount: 2, totalSpent: 3800, createdAt: '2024-02-10' },
-  { id: '6', name: 'Lisa Anderson', email: 'lisa.a@email.com', phone: '+1 234-567-8906', address: '987 Cedar Ln, Town', vehicleCount: 1, totalSpent: 650, createdAt: '2024-03-15' },
-  { id: '7', name: 'David Martinez', email: 'david.m@email.com', phone: '+1 234-567-8907', address: '147 Birch Way, Village', vehicleCount: 2, totalSpent: 2100, createdAt: '2024-01-22' },
-  { id: '8', name: 'Jennifer Taylor', email: 'jennifer.t@email.com', phone: '+1 234-567-8908', address: '258 Spruce Ct, Metro', vehicleCount: 1, totalSpent: 980, createdAt: '2024-02-28' },
-];
 
 export const Customers: React.FC = () => {
   const { formatCurrency } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
+  const { data, isLoading, error } = useCustomers();
 
-  const filteredCustomers = mockCustomers.filter(
+  const customers: Customer[] = (data ?? []).map((customer) => ({
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone,
+    vehicleCount: customer.vehicle_ids?.length ?? 0,
+    totalSpent: 0,
+  }));
+
+  const filteredCustomers = customers.filter(
     (customer) =>
       customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -53,7 +51,7 @@ export const Customers: React.FC = () => {
           </div>
           <div>
             <p className="font-medium text-foreground">{customer.name}</p>
-            <p className="text-sm text-muted-foreground">{customer.address}</p>
+            <p className="text-sm text-muted-foreground">Customer ID: {customer.id}</p>
           </div>
         </div>
       ),
@@ -143,21 +141,24 @@ export const Customers: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">Total Customers</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{mockCustomers.length}</p>
+          <p className="text-2xl font-bold text-foreground mt-1">{customers.length}</p>
         </div>
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">Total Vehicles</p>
           <p className="text-2xl font-bold text-foreground mt-1">
-            {mockCustomers.reduce((sum, c) => sum + c.vehicleCount, 0)}
+            {customers.reduce((sum, c) => sum + c.vehicleCount, 0)}
           </p>
         </div>
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">Total Revenue</p>
           <p className="text-2xl font-bold text-foreground mt-1">
-            {formatCurrency(mockCustomers.reduce((sum, c) => sum + c.totalSpent, 0))}
+            {formatCurrency(customers.reduce((sum, c) => sum + c.totalSpent, 0))}
           </p>
         </div>
       </div>
+
+      {isLoading && <p className="text-sm text-muted-foreground">Loading customers...</p>}
+      {error && <p className="text-sm text-destructive">Failed to load customers from database.</p>}
 
       {/* Data Table */}
       <DataTable

@@ -99,10 +99,10 @@ public class UserService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String token = jwtUtils.generateToken(authDTO.getEmail());
-
         User user = userRepository.findByEmail(authDTO.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String token = jwtUtils.generateToken(user);
 
         return Map.of(
                 "token", token,

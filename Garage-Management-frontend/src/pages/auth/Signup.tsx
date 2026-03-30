@@ -43,7 +43,7 @@ export const Signup = React.forwardRef<HTMLDivElement>((_, ref) => {
       toast.success('Account submitted for approval! You will be notified once verified.', { id: SIGNUP_TOAST_ID });
       navigate('/login');
     } else {
-      toast.error('Signup failed. Check backend /auth/signup and API URL.', { id: SIGNUP_TOAST_ID });
+      toast.error('Signup failed. Check backend /api/auth/register and API URL.', { id: SIGNUP_TOAST_ID });
     }
   };
 

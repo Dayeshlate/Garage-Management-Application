@@ -28,5 +28,7 @@ public class VehicleDTO {
     private LocalDateTime expectedTime;
     private LocalDateTime deliveryTime;
     private String ownerName;
+    private String ownerPhone;
+    private String ownerEmail;
     private String userEmail;
 }

@@ -33,7 +33,7 @@ export const Login = React.forwardRef<HTMLDivElement>((_, ref) => {
       toast.success('Welcome back!', { id: LOGIN_TOAST_ID });
       navigate('/dashboard');
     } else {
-      toast.error('Login failed. Try demo account: admin@garage.com / admin123', { id: LOGIN_TOAST_ID });
+      toast.error('Login failed. Please check your credentials.', { id: LOGIN_TOAST_ID });
     }
   };
 
@@ -46,33 +46,6 @@ export const Login = React.forwardRef<HTMLDivElement>((_, ref) => {
         </p>
       </div>
 
-      {/* Demo Accounts Section */}
-      <div className="mb-6 p-4 bg-accent/10 border border-accent/30 rounded-lg">
-        <p className="text-xs font-medium text-foreground mb-3">Demo Accounts:</p>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setEmail('admin@garage.com');
-              setPassword('admin123');
-            }}
-            className="text-xs bg-accent text-accent-foreground hover:bg-accent/90 px-3 py-2 rounded font-medium transition-colors"
-          >
-            Admin Demo
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEmail('user@garage.com');
-              setPassword('user123');
-            }}
-            className="text-xs bg-muted text-foreground hover:bg-muted/80 px-3 py-2 rounded font-medium transition-colors"
-          >
-            User Demo
-          </button>
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
@@ -83,7 +56,7 @@ export const Login = React.forwardRef<HTMLDivElement>((_, ref) => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@garage.com"
+            placeholder="you@example.com"
             className="input-field"
             autoComplete="email"
           />
@@ -128,29 +101,6 @@ export const Login = React.forwardRef<HTMLDivElement>((_, ref) => {
           )}
         </button>
       </form>
-
-      {/* Demo Accounts */}
-      <div className="mt-6 space-y-2">
-        <p className="text-xs text-center text-muted-foreground font-medium uppercase tracking-wide">Demo Accounts</p>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => { setEmail('admin@garage.com'); setPassword('admin123'); }}
-            className="flex flex-col items-center gap-1 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm hover:bg-muted transition-colors"
-          >
-            <span className="font-semibold text-foreground">Admin</span>
-            <span className="text-xs text-muted-foreground">admin@garage.com</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { setEmail('user@garage.com'); setPassword('user123'); }}
-            className="flex flex-col items-center gap-1 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm hover:bg-muted transition-colors"
-          >
-            <span className="font-semibold text-foreground">User</span>
-            <span className="text-xs text-muted-foreground">user@garage.com</span>
-          </button>
-        </div>
-      </div>
 
       <p className="mt-4 text-center text-sm text-muted-foreground">
         Don't have an account?{' '}

@@ -149,9 +149,16 @@ public class JobCardService {
     }
 
     public JobCardDTO toDto(JobCard entity) {
+        Vehicle vehicle = entity.getVehicle();
         return JobCardDTO.builder()
                 .id(entity.getId())
-                .Vehicle_id(entity.getVehicle().getId())
+                .Vehicle_id(vehicle.getId())
+                .vehicleNumber(vehicle.getVehicleNumber())
+                .vehicleBrand(vehicle.getBrand())
+                .vehicleModel(vehicle.getModel())
+                .ownerName(vehicle.getOwnerName())
+                .ownerPhone(vehicle.getOwnerPhone())
+                .ownerEmail(vehicle.getOwnerEmail())
                 .JobStatus(entity.getJobStatus())
                 .SparePart_id(
                         entity.getSpareParts()

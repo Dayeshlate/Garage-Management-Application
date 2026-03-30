@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Plus, Search, Package, AlertTriangle, MoreVertical } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import { AddInventoryDialog } from '@/components/AddInventoryDialog';
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useCreateInventoryItem, useInventory } from '@/hooks/use-api';
 
 interface InventoryItem {
   id: string;
@@ -25,59 +26,68 @@ interface InventoryItem {
   lastUpdated: string;
 }
 
-const mockInventory: InventoryItem[] = [
-  { id: '1', name: 'Engine Oil 5W-30', sku: 'OIL-5W30-01', category: 'Lubricants', quantity: 45, unit: 'Liters', minStock: 20, unitPrice: 12.50, supplier: 'AutoParts Inc', lastUpdated: '2024-03-15' },
-  { id: '2', name: 'Brake Pads (Front)', sku: 'BRK-FRT-01', category: 'Brakes', quantity: 8, unit: 'Sets', minStock: 10, unitPrice: 65.00, supplier: 'BrakeMaster Co', lastUpdated: '2024-03-14' },
-  { id: '3', name: 'Air Filter - Universal', sku: 'FLT-AIR-01', category: 'Filters', quantity: 25, unit: 'Pieces', minStock: 15, unitPrice: 18.00, supplier: 'FilterWorld', lastUpdated: '2024-03-16' },
-  { id: '4', name: 'Spark Plugs - Iridium', sku: 'SPK-IRD-01', category: 'Ignition', quantity: 40, unit: 'Pieces', minStock: 20, unitPrice: 8.50, supplier: 'SparkTech', lastUpdated: '2024-03-12' },
-  { id: '5', name: 'Coolant - Green', sku: 'CLT-GRN-01', category: 'Coolants', quantity: 30, unit: 'Liters', minStock: 25, unitPrice: 9.00, supplier: 'AutoParts Inc', lastUpdated: '2024-03-17' },
-  { id: '6', name: 'Transmission Fluid ATF', sku: 'TRN-ATF-01', category: 'Lubricants', quantity: 5, unit: 'Liters', minStock: 15, unitPrice: 15.00, supplier: 'LubeMax', lastUpdated: '2024-03-10' },
-  { id: '7', name: 'Wiper Blades - 22"', sku: 'WPR-22-01', category: 'Accessories', quantity: 18, unit: 'Pairs', minStock: 10, unitPrice: 22.00, supplier: 'ClearView', lastUpdated: '2024-03-13' },
-  { id: '8', name: 'Battery - 12V 60Ah', sku: 'BAT-12V-60', category: 'Electrical', quantity: 6, unit: 'Pieces', minStock: 5, unitPrice: 120.00, supplier: 'PowerCell', lastUpdated: '2024-03-18' },
-];
-
 export const Inventory: React.FC = () => {
   const { formatCurrency } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [inventory, setInventory] = useState(mockInventory);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
-  const handleAddItem = (item: Omit<InventoryItem, 'id' | 'lastUpdated'>) => {
-    const newItem: InventoryItem = {
-      ...item,
-      id: String(inventory.length + 1),
-      lastUpdated: new Date().toISOString().split('T')[0],
-    };
-    setInventory([newItem, ...inventory]);
-    toast({ title: 'Item added', description: `${item.name} has been added to inventory.` });
-  };
+  const { data, isLoading, error, refetch } = useInventory();
+  const createInventoryItem = useCreateInventoryItem();
 
-  const handleUpdateQuantity = (id: string, quantity: number) => {
-    setInventory((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity, lastUpdated: new Date().toISOString().split('T')[0] } : item
-      )
-    );
-    if (selectedItem?.id === id) {
-      setSelectedItem((prev) => prev ? { ...prev, quantity, lastUpdated: new Date().toISOString().split('T')[0] } : prev);
+  const inventory: InventoryItem[] = useMemo(
+    () =>
+      (data ?? []).map((item) => ({
+        id: String(item.id),
+        name: item.partName,
+        sku: `SP-${item.id}`,
+        category: item.manufacture || 'General',
+        quantity: item.partStock,
+        unit: 'pcs',
+        minStock: 5,
+        unitPrice: item.partPrice,
+        supplier: item.manufacture || 'Unknown',
+        lastUpdated: new Date().toISOString().split('T')[0],
+      })),
+    [data]
+  );
+
+  const handleAddItem = async (item: {
+    name: string;
+    sku: string;
+    category: string;
+    quantity: number;
+    unit: string;
+    minStock: number;
+    unitPrice: number;
+    supplier: string;
+  }) => {
+    try {
+      await createInventoryItem.mutateAsync({
+        partName: item.name,
+        partStock: item.quantity,
+        partPrice: item.unitPrice,
+        manufacture: item.supplier || item.category,
+        jobCardIds: null,
+      });
+      await refetch();
+      toast({ title: 'Item added', description: `${item.name} has been added to inventory.` });
+    } catch {
+      toast({ title: 'Failed to add item', description: 'Could not create inventory item in backend.', variant: 'destructive' });
     }
   };
 
-  const handleUpdateItem = (id: string, updates: Partial<InventoryItem>) => {
-    setInventory((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, ...updates, lastUpdated: new Date().toISOString().split('T')[0] } : item
-      )
-    );
-    if (selectedItem?.id === id) {
-      setSelectedItem((prev) => prev ? { ...prev, ...updates, lastUpdated: new Date().toISOString().split('T')[0] } : prev);
-    }
+  const handleUpdateQuantity = () => {
+    toast({ title: 'Not supported', description: 'Update inventory API is not available in backend yet.', variant: 'destructive' });
   };
 
-  const handleDeleteItem = (id: string) => {
-    setInventory((prev) => prev.filter((item) => item.id !== id));
+  const handleUpdateItem = () => {
+    toast({ title: 'Not supported', description: 'Update inventory API is not available in backend yet.', variant: 'destructive' });
+  };
+
+  const handleDeleteItem = () => {
+    toast({ title: 'Not supported', description: 'Delete inventory API is not available in backend yet.', variant: 'destructive' });
   };
 
   const handleRowClick = (item: { id: string | number }) => {
@@ -171,8 +181,6 @@ export const Inventory: React.FC = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setSelectedItem(item)}>View Details</DropdownMenuItem>
-            <DropdownMenuItem>Reorder</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item.id)}>Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -181,7 +189,6 @@ export const Inventory: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="page-header">
         <div>
           <h1 className="page-title">Inventory</h1>
@@ -193,7 +200,6 @@ export const Inventory: React.FC = () => {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">Total Items</p>
@@ -213,7 +219,6 @@ export const Inventory: React.FC = () => {
         </div>
       </div>
 
-      {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -238,7 +243,9 @@ export const Inventory: React.FC = () => {
         </select>
       </div>
 
-      {/* Data Table */}
+      {isLoading && <p className="text-sm text-muted-foreground">Loading inventory...</p>}
+      {error && <p className="text-sm text-destructive">Failed to load inventory from database.</p>}
+
       <DataTable
         columns={columns}
         data={filteredInventory}

@@ -47,6 +47,21 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Admin access granted"));
     }
 
+    @GetMapping("/debug-auth")
+    public ResponseEntity<?> debugAuth() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String status = auth != null && auth.isAuthenticated() ? "AUTHENTICATED" : "NOT_AUTHENTICATED";
+        String authorities = auth != null ? auth.getAuthorities().toString() : "NONE";
+        String principal = auth != null ? auth.getPrincipal().toString() : "NONE";
+        
+        return ResponseEntity.ok(Map.of(
+            "status", status,
+            "authorities", authorities,
+            "principal", principal,
+            "authenticated", auth != null && auth.isAuthenticated()
+        ));
+    }
+
     @GetMapping("/current")
     public UserDTO getuser() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();

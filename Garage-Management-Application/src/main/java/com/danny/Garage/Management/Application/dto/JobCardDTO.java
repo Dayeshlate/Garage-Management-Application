@@ -20,6 +20,12 @@ public class JobCardDTO {
     private JobStatus JobStatus;
 
     private Long Vehicle_id;
+    private String vehicleNumber;
+    private String vehicleBrand;
+    private String vehicleModel;
+    private String ownerName;
+    private String ownerPhone;
+    private String ownerEmail;
 
     private Set<Long> SparePart_id;
 }

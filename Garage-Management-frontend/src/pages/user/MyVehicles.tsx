@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Car, Calendar, Wrench, Fuel, Plus, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { StatusBadge, StatusType } from '@/components/StatusBadge';
+import React, { useMemo, useState } from 'react';
+import { Car, Calendar, Wrench, Plus, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { AddVehicleDialog } from '@/components/AddVehicleDialog';
 import { toast } from '@/hooks/use-toast';
+import { useCreateVehicle, useMyVehicles } from '@/hooks/use-api';
+import type { CreateVehicleDto } from '@/api/vehicles';
 
 interface UserVehicle {
   id: string;
@@ -18,48 +19,6 @@ interface UserVehicle {
   status: 'pending' | 'approved' | 'rejected';
 }
 
-const mockUserVehicles: UserVehicle[] = [
-  {
-    id: '1',
-    make: 'Toyota',
-    model: 'Camry',
-    year: 2022,
-    licensePlate: 'KA-01-AB-1234',
-    vin: '1HGBH41JXMN109186',
-    color: 'Silver',
-    owner: 'John Smith',
-    lastService: '2026-01-15',
-    totalServices: 5,
-    status: 'approved',
-  },
-  {
-    id: '2',
-    make: 'Honda',
-    model: 'Civic',
-    year: 2021,
-    licensePlate: 'KA-01-CD-5678',
-    vin: '2HGBH41JXMN109187',
-    color: 'White',
-    owner: 'John Smith',
-    lastService: '2026-02-03',
-    totalServices: 3,
-    status: 'approved',
-  },
-  {
-    id: '3',
-    make: 'BMW',
-    model: 'X3',
-    year: 2023,
-    licensePlate: 'KA-02-EF-9012',
-    vin: '3HGBH41JXMN109188',
-    color: 'Black',
-    owner: 'John Smith',
-    lastService: '',
-    totalServices: 0,
-    status: 'pending',
-  },
-];
-
 const statusIcon = {
   pending: <Clock className="h-4 w-4 text-yellow-500" />,
   approved: <CheckCircle className="h-4 w-4 text-green-500" />,
@@ -73,22 +32,43 @@ const statusLabel = {
 };
 
 export const MyVehicles: React.FC = () => {
-  const [vehicles, setVehicles] = useState(mockUserVehicles);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const { data, isLoading, error, refetch } = useMyVehicles();
+  const createVehicle = useCreateVehicle();
 
-  const handleAddVehicle = (vehicle: { make: string; model: string; year: number; licensePlate: string; vin: string; color: string; owner: string }) => {
-    const newVehicle: UserVehicle = {
-      ...vehicle,
-      id: String(Date.now()),
-      lastService: '',
-      totalServices: 0,
-      status: 'pending',
-    };
-    setVehicles([newVehicle, ...vehicles]);
-    toast({
-      title: 'Vehicle submitted for approval',
-      description: `${vehicle.year} ${vehicle.make} ${vehicle.model} has been submitted. Admin will review it shortly.`,
-    });
+  const vehicles: UserVehicle[] = useMemo(
+    () =>
+      (data ?? []).map((vehicle) => ({
+        id: String(vehicle.id),
+        make: vehicle.brand ?? 'Unknown',
+        model: vehicle.model ?? 'Unknown',
+        year: Number(String(vehicle.model ?? '').match(/\d{4}/)?.[0]) || new Date().getFullYear(),
+        licensePlate: vehicle.vehicleNumber ?? '-',
+        vin: vehicle.vehicleType ?? '-',
+        color: 'Unknown',
+        owner: vehicle.ownerName ?? vehicle.userEmail ?? 'Unknown',
+        lastService: vehicle.deliveryTime ?? '',
+        totalServices: 0,
+        status: vehicle.vehicleStatus === 'PENDING' ? 'pending' : 'approved',
+      })),
+    [data]
+  );
+
+  const handleAddVehicle = async (vehicle: CreateVehicleDto) => {
+    try {
+      await createVehicle.mutateAsync(vehicle);
+      await refetch();
+      toast({
+        title: 'Vehicle submitted for approval',
+        description: `${vehicle.brand} ${vehicle.model} has been submitted.`,
+      });
+    } catch {
+      toast({
+        title: 'Failed to submit vehicle',
+        description: 'Could not create vehicle in backend.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -104,7 +84,6 @@ export const MyVehicles: React.FC = () => {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">Total Vehicles</p>
@@ -124,6 +103,9 @@ export const MyVehicles: React.FC = () => {
         </div>
       </div>
 
+      {isLoading && <p className="text-sm text-muted-foreground">Loading your vehicles...</p>}
+      {error && <p className="text-sm text-destructive">Failed to load vehicles from database.</p>}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {vehicles.map((vehicle) => (
           <div
@@ -136,7 +118,6 @@ export const MyVehicles: React.FC = () => {
                 : 'border-border'
             }`}
           >
-            {/* Header */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
@@ -163,7 +144,6 @@ export const MyVehicles: React.FC = () => {
               </div>
             </div>
 
-            {/* Details grid */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
@@ -200,7 +180,7 @@ export const MyVehicles: React.FC = () => {
                     <div>
                       <p className="text-xs text-muted-foreground">Last Service</p>
                       <p className="text-sm font-medium text-foreground">
-                        {vehicle.lastService || 'N/A'}
+                        {vehicle.lastService ? new Date(vehicle.lastService).toLocaleDateString() : 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -221,13 +201,6 @@ export const MyVehicles: React.FC = () => {
               <div className="mt-4 p-3 bg-yellow-500/5 rounded-lg border border-yellow-500/20">
                 <p className="text-xs text-muted-foreground">
                   This vehicle is awaiting admin verification. You'll be able to book services once it's approved.
-                </p>
-              </div>
-            )}
-            {vehicle.status === 'rejected' && (
-              <div className="mt-4 p-3 bg-destructive/5 rounded-lg border border-destructive/20">
-                <p className="text-xs text-destructive">
-                  This vehicle was rejected by admin. Please contact support for more information.
                 </p>
               </div>
             )}

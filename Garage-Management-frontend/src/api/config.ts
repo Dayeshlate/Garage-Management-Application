@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -15,8 +15,10 @@ apiClient.interceptors.request.use((config) => {
   if (user) {
     try {
       const parsed = JSON.parse(user);
-      if (parsed.token) {
+      if (parsed.token && parsed.token !== 'demo-token') {
         config.headers.Authorization = `Bearer ${parsed.token}`;
+      } else if (parsed.token === 'demo-token') {
+        localStorage.removeItem('garage_user');
       }
     } catch {
       // ignore
@@ -31,6 +33,11 @@ apiClient.interceptors.response.use(
   (error) => {
     const status = error.response?.status || 0;
     const responseData = error.response?.data;
+
+    if (status === 401 || status === 403) {
+      localStorage.removeItem('garage_user');
+    }
+
     const message =
       (typeof responseData === 'string' && responseData) ||
       responseData?.message ||

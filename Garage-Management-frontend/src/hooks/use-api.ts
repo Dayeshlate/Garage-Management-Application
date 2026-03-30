@@ -71,6 +71,9 @@ export const useDeleteVehicle = () => {
 export const useJobCards = () =>
   useQuery({ queryKey: ['jobCards'], queryFn: jobCardsApi.getAll });
 
+export const useUserJobCards = () =>
+  useQuery({ queryKey: ['jobCards', 'user-active'], queryFn: jobCardsApi.getUserActive });
+
 export const useCreateJobCard = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -83,7 +86,10 @@ export const useUpdateJobCard = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<JobCardDTO> }) => jobCardsApi.update(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobCards'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['jobCards'] });
+      qc.invalidateQueries({ queryKey: ['jobCards', 'user-active'] });
+    },
   });
 };
 
