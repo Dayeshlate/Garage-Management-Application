@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
-@RequestMapping("admin/SparePart")
+@RequestMapping("/admin/SparePart")
 public class SparePartController {
     
     private final SparePartService sparePartService;

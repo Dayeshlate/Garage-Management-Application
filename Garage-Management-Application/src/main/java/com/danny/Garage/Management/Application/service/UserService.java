@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.authentication.AuthenticationManager;
+import jakarta.transaction.Transactional;
 
 import com.danny.Garage.Management.Application.dto.AuthDTO;
 import com.danny.Garage.Management.Application.dto.UserDTO;
@@ -26,6 +28,8 @@ import com.danny.Garage.Management.Application.utils.JwtUtils;
 
 @Service
 public class UserService {
+
+    private static final Set<String> SUPPORTED_CURRENCIES = Set.of("USD", "EUR", "GBP", "INR");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -62,6 +66,7 @@ public class UserService {
 
         User user = toEntity(dto, null);
         user.setActivationToken(UUID.randomUUID().toString());
+        user.setIsActive(true);  // Auto-activate users on registration
         String activationLink = activationUrl+"/api/auth/activate?activationToken=" + user.getActivationToken();
         String subject = "Activate your garage management application";
         String body = "Click on the following link to activate your account: " + activationLink;
@@ -102,7 +107,7 @@ public class UserService {
         User user = userRepository.findByEmail(authDTO.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String token = jwtUtils.generateToken(user);
+        String token = jwtUtils.generateToken(user.getEmail());
 
         return Map.of(
                 "token", token,
@@ -131,8 +136,17 @@ public class UserService {
             return null;
         }
 
-        User user = (User) authentication.getPrincipal();
-        return toDto(user);
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User user) {
+            return toDto(user);
+        }
+
+        String email = authentication.getName();
+        if (email != null && !email.isBlank() && !"anonymousUser".equals(email)) {
+            return userRepository.findByEmail(email).map(this::toDto).orElse(null);
+        }
+
+        return null;
     }
 
     public User getCurrentUserObject() {
@@ -143,8 +157,17 @@ public class UserService {
             return null;
         }
 
-        User user = (User) authentication.getPrincipal();
-        return user;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User user) {
+            return user;
+        }
+
+        String email = authentication.getName();
+        if (email != null && !email.isBlank() && !"anonymousUser".equals(email)) {
+            return userRepository.findByEmail(email).orElse(null);
+        }
+
+        return null;
     }
 
     public User updateUser(UserDTO dto, Long id) {
@@ -199,6 +222,8 @@ public class UserService {
             .email(user.getEmail())
             .phone(user.getPhone())
             .role(user.getRole())
+            .currency(user.getCurrency() != null ? user.getCurrency() : "USD")
+            .taxRate(user.getTaxRate() != null ? user.getTaxRate() : 12)
             .vehicle_ids(getVehicleIdsForUser(user))
             .build();
     }
@@ -218,4 +243,44 @@ public class UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+
+    @Transactional
+    public UserDTO updateUserCurrency(Long userId, String currency) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String normalizedCurrency = normalizeCurrency(currency);
+        user.setCurrency(normalizedCurrency);
+        userRepository.save(user);
+
+        return toDto(user);
+    }
+
+    @Transactional
+    public UserDTO updateCurrentUserCurrency(String currency) {
+        User currentUser = getCurrentUserObject();
+        if (currentUser == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        String normalizedCurrency = normalizeCurrency(currency);
+        currentUser.setCurrency(normalizedCurrency);
+        userRepository.save(currentUser);
+
+        return toDto(currentUser);
+    }
+
+    private String normalizeCurrency(String currency) {
+        if (currency == null || currency.isBlank()) {
+            throw new RuntimeException("Currency is required");
+        }
+
+        String normalized = currency.trim().toUpperCase();
+        if (!SUPPORTED_CURRENCIES.contains(normalized)) {
+            throw new RuntimeException("Unsupported currency: " + normalized);
+        }
+
+        return normalized;
+    }
+
 }

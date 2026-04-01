@@ -61,8 +61,13 @@ public class User implements UserDetails {
 
     private String activationToken;
 
-
     private Boolean isActive;
+
+    @Column(length = 10)
+    private String currency;
+
+    @Column
+    private Integer taxRate;
 
     @PrePersist
     public void prePersist(){
@@ -97,7 +102,9 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        // If isActive is null, treat as true (for backward compatibility)
+        // If isActive is explicitly false, reject
+        return isActive == null || isActive;
     }
 
     @Override

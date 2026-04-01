@@ -1,8 +1,9 @@
 import React from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, DollarSign } from 'lucide-react';
 import { StatusBadge, StatusType } from '@/components/StatusBadge';
 import { ServiceProgressTracker } from '@/components/ServiceProgressTracker';
 import { useUserJobCards } from '@/hooks/use-api';
+import { useSettings } from '@/context/SettingsContext';
 
 const toStatus = (status: string): StatusType => {
   if (status === 'IN_SERVICE' || status === 'WAITING_FOR_PART') return 'in-progress';
@@ -40,6 +41,7 @@ const buildSteps = (status: string) => {
 };
 
 export const TrackService: React.FC = () => {
+  const { formatCurrency } = useSettings();
   const { data, isLoading, error } = useUserJobCards();
 
   const myServices = (data ?? []).map((job) => ({
@@ -50,6 +52,7 @@ export const TrackService: React.FC = () => {
     plateNo: job.vehicleNumber ?? '-',
     service: `Spare Parts: ${(job.sparePart_id ?? job.SparePart_id)?.length ?? 0}`,
     status: toStatus(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
+    mechanicCharge: job.mechanicCharge ?? 0,
     estimatedDate: new Date().toISOString().split('T')[0],
     steps: buildSteps(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
   }));
@@ -82,9 +85,20 @@ export const TrackService: React.FC = () => {
                   Service: <span className="text-foreground font-medium">{service.service}</span>
                 </p>
               </div>
-              <div className="text-sm text-muted-foreground text-right">
-                <p>Estimated Completion</p>
-                <p className="text-foreground font-medium">{service.estimatedDate}</p>
+              <div className="text-right space-y-2">
+                <div>
+                  <p className="text-sm text-muted-foreground">Estimated Completion</p>
+                  <p className="text-foreground font-medium">{service.estimatedDate}</p>
+                </div>
+                {service.mechanicCharge > 0 && (
+                  <div className="flex items-center gap-1 justify-end">
+                    <DollarSign className="h-4 w-4 text-accent" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Mechanic Amount</p>
+                      <p className="text-foreground font-medium">{formatCurrency(service.mechanicCharge)}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

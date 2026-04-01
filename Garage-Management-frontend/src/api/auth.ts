@@ -8,6 +8,8 @@ export interface UserDTO {
   role: 'ADMIN' | 'USER' | 'MECHANIC';
   phone: string;
   vehicle_ids: number[];
+  currency?: string;
+  taxRate?: number;
 }
 
 export interface LoginRequest {

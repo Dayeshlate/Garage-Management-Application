@@ -25,6 +25,14 @@ export const useUpdateCustomer = () => {
   });
 };
 
+export const useUpdateCustomerCurrency = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, currency }: { id: number; currency: string }) => customersApi.updateCurrency(id, currency),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['customers'] }),
+  });
+};
+
 export const useDeleteCustomer = () => {
   const qc = useQueryClient();
   return useMutation({

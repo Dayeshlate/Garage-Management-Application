@@ -19,7 +19,7 @@ public class BillDTO {
 
     private LocalDateTime billDate;
 
-    private BigDecimal labourAmount;
+    private BigDecimal mechanicAmount;
 
     private String paymentMode;
 
@@ -30,5 +30,7 @@ public class BillDTO {
     private Long jobCard_id;
 
     private BigDecimal sparePartAmount;
+
+    private String currency;
 
 }

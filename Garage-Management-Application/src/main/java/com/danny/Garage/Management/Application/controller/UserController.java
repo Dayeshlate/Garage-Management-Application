@@ -14,7 +14,6 @@ import com.danny.Garage.Management.Application.service.UserService;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 
@@ -73,6 +72,13 @@ public class UserController {
     public ResponseEntity<List<UserDTO>> getAllCustomers() {
         List<UserDTO> userDTOs = userService.getAllCustemors();
         return ResponseEntity.ok(userDTOs);
+    }
+
+    @PutMapping("/current/currency")
+    public ResponseEntity<UserDTO> updateCurrentUserCurrency(@RequestBody Map<String, String> request) {
+        String currency = request.get("currency");
+        UserDTO updatedUser = userService.updateCurrentUserCurrency(currency);
+        return ResponseEntity.ok(updatedUser);
     }
     
 

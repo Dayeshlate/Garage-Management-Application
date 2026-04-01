@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import com.danny.Garage.Management.Application.entity.User;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -32,15 +30,6 @@ public class JwtUtils {
 
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         this.jwtTokenValidity = jwtTokenValidity;
-    }
-
-    public String generateToken(User user) {
-
-        Map<String, Object> claims = new HashMap<>();
-        String role = (user.getRole() != null) ? user.getRole().name() : "USER";
-        claims.put("role", role);
-
-        return createToken(claims, user.getEmail());
     }
 
     public String generateToken(String email) {

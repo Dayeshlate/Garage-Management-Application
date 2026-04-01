@@ -9,11 +9,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.danny.Garage.Management.Application.dto.BillDTO;
-import com.danny.Garage.Management.Application.dto.LabourUpdateDTO;
+import com.danny.Garage.Management.Application.dto.MechanicUpdateDTO;
 import com.danny.Garage.Management.Application.dto.UserDTO;
 import com.danny.Garage.Management.Application.entity.Bill;
 import com.danny.Garage.Management.Application.entity.BillStatus;
 import com.danny.Garage.Management.Application.entity.JobCard;
+import com.danny.Garage.Management.Application.entity.User;
 import com.danny.Garage.Management.Application.repository.BillRepository;
 import com.danny.Garage.Management.Application.repository.JobCardRepository;
 
@@ -41,36 +42,36 @@ public class BillService {
         this.vehicleService = vehicleService;
     }
 
-    public List<BillDTO> getPendingLabourBills() {
+    public List<BillDTO> getPendingMechanicBills() {
         return billRepository
-                .findByBillStatus(BillStatus.PENDING_LABOUR)
+                .findByBillStatus(BillStatus.PENDING_MECHANIC)
                 .stream()
                 .map(this::toDTO)
                 .toList();
     }
 
     @Transactional
-    public void updateLabourAmount(LabourUpdateDTO dto) {
+    public void updateMechanicAmount(MechanicUpdateDTO dto) {
 
         Bill bill = billRepository.findById(dto.getBillId())
                 .orElseThrow(() -> new RuntimeException("Bill not found"));
 
-        if (bill.getBillStatus() != BillStatus.PENDING_LABOUR) {
-            throw new RuntimeException("Bill is not awaiting labour update");
+        if (bill.getBillStatus() != BillStatus.PENDING_MECHANIC) {
+            throw new RuntimeException("Bill is not awaiting mechanic amount update");
         }
 
-        if (dto.getLabourAmount() == null ||
-                dto.getLabourAmount().compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("Invalid labour amount");
+        if (dto.getMechanicAmount() == null ||
+                dto.getMechanicAmount().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Invalid mechanic amount");
         }
 
-        bill.setLabourAmount(dto.getLabourAmount());
+        bill.setMechanicAmount(dto.getMechanicAmount());
 
         BigDecimal spareAmount = bill.getSparePartAmount() != null
                 ? bill.getSparePartAmount()
                 : BigDecimal.ZERO;
 
-        BigDecimal subtotal = spareAmount.add(dto.getLabourAmount());
+        BigDecimal subtotal = spareAmount.add(dto.getMechanicAmount());
 
         BigDecimal taxAmount = subtotal.multiply(tax);
         BigDecimal discountAmount = subtotal.multiply(discount);
@@ -90,6 +91,9 @@ public class BillService {
 
     public List<BillDTO> getAllBillForUser() {
         UserDTO user = userService.getCurrentUser();
+        if (user == null) {
+            return List.of();
+        }
         List<BillDTO> billDTOs = billRepository.findByJobCardVehicleUserId(user.getId()).stream().map(this::toDTO)
                 .toList();
         return billDTOs;
@@ -100,7 +104,7 @@ public class BillService {
         LocalDateTime date = LocalDateTime.now().minusDays(days);
 
         List<Bill> bills = billRepository
-                .findByLabourAmountIsNullAndBillDateAfter(date);
+                .findByMechanicAmountIsNullAndBillDateAfter(date);
 
         BigDecimal revenue = bills.stream()
                 .map(Bill::getTotalPayment)
@@ -111,7 +115,11 @@ public class BillService {
     }
 
     public Long getTotalCountOfBillsForUser() {
-        return billRepository.countByJobCardVehicleUser(userService.getCurrentUserObject());
+        User user = userService.getCurrentUserObject();
+        if (user == null) {
+            return 0L;
+        }
+        return billRepository.countByJobCardVehicleUser(user);
     }
 
     public List<BillDTO> getAllBillsOfVehicle(Long id) {
@@ -132,9 +140,10 @@ public class BillService {
                 .billDate(entity.getBillDate())
                 .billStatus(entity.getBillStatus())
                 .sparePartAmount(entity.getSparePartAmount())
-                .labourAmount(entity.getLabourAmount())
+                .mechanicAmount(entity.getMechanicAmount())
                 .paymentMode(entity.getPaymentMode())
                 .totalBill(entity.getTotalPayment())
+                .currency(entity.getCurrency())
                 .jobCard_id(entity.getJobCard() != null
                         ? entity.getJobCard().getId()
                         : null)
@@ -154,7 +163,7 @@ public class BillService {
                 .id(dto.getId())
                 .billDate(dto.getBillDate())
                 .sparePartAmount(dto.getSparePartAmount())
-                .labourAmount(dto.getLabourAmount())
+                .mechanicAmount(dto.getMechanicAmount())
                 .paymentMode(dto.getPaymentMode())
                 .billStatus(dto.getBillStatus())
                 .totalPayment(dto.getTotalBill())

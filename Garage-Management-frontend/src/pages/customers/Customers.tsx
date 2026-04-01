@@ -1,20 +1,30 @@
 import React, { useState } from 'react';
-import { Plus, Search, Phone, Mail, MoreVertical } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MoreVertical, DollarSign } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import { useSettings } from '@/context/SettingsContext';
-import { useCustomers } from '@/hooks/use-api';
+import { useCustomers, useUpdateCustomerCurrency } from '@/hooks/use-api';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
 
 interface Customer {
   id: number;
   name: string;
   email: string;
   phone: string;
+  currency?: string;
   vehicleCount: number;
   totalSpent: number;
 }
@@ -22,13 +32,17 @@ interface Customer {
 export const Customers: React.FC = () => {
   const { formatCurrency } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const { data, isLoading, error } = useCustomers();
+  const updateCurrency = useUpdateCustomerCurrency();
 
   const customers: Customer[] = (data ?? []).map((customer) => ({
     id: customer.id,
     name: customer.name,
     email: customer.email,
     phone: customer.phone,
+    currency: customer.currency || 'USD',
     vehicleCount: customer.vehicle_ids?.length ?? 0,
     totalSpent: 0,
   }));
@@ -39,6 +53,32 @@ export const Customers: React.FC = () => {
       customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.phone.includes(searchTerm)
   );
+
+  const handleOpenCurrencyDialog = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setSelectedCurrency(customer.currency || 'USD');
+  };
+
+  const handleSaveCurrency = async () => {
+    if (!selectedCustomer) return;
+    try {
+      await updateCurrency.mutateAsync({
+        id: selectedCustomer.id,
+        currency: selectedCurrency,
+      });
+      toast({
+        title: 'Currency updated',
+        description: `${selectedCustomer.name}'s currency changed to ${selectedCurrency}`,
+      });
+      setSelectedCustomer(null);
+    } catch (error) {
+      toast({
+        title: 'Failed to update currency',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const columns = [
     {
@@ -82,6 +122,16 @@ export const Customers: React.FC = () => {
       ),
     },
     {
+      key: 'currency',
+      header: 'Currency',
+      render: (customer: Customer) => (
+        <div className="flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <span className="font-medium text-foreground">{customer.currency}</span>
+        </div>
+      ),
+    },
+    {
       key: 'totalSpent',
       header: 'Total Spent',
       render: (customer: Customer) => (
@@ -102,6 +152,10 @@ export const Customers: React.FC = () => {
             <DropdownMenuItem>View Details</DropdownMenuItem>
             <DropdownMenuItem>Edit Customer</DropdownMenuItem>
             <DropdownMenuItem>View Vehicles</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleOpenCurrencyDialog(customer)}>
+              <DollarSign className="h-4 w-4 mr-2" />
+              Change Currency
+            </DropdownMenuItem>
             <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -166,6 +220,46 @@ export const Customers: React.FC = () => {
         data={filteredCustomers}
         emptyMessage="No customers found"
       />
+
+      {/* Currency Change Dialog */}
+      <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Customer Currency</DialogTitle>
+            <DialogDescription>
+              Update the currency for {selectedCustomer?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Select Currency
+              </label>
+              <select
+                value={selectedCurrency}
+                onChange={(e) => setSelectedCurrency(e.target.value)}
+                className="input-field"
+              >
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="INR">INR (₹)</option>
+              </select>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedCustomer(null)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSaveCurrency}>
+                Save Currency
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

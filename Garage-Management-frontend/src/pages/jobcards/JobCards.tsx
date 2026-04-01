@@ -14,6 +14,7 @@ interface JobCard {
   services: string[];
   status: StatusType;
   estimatedCost: number;
+  mechanicCharge?: number;
   assignedTo: string;
   createdAt: string;
   dueDate: string;
@@ -75,6 +76,18 @@ export const JobCards: React.FC = () => {
     toast({ title: 'Due date updated', description: `Due date changed to ${new Date(dueDate).toLocaleDateString()}` });
   };
 
+  const handleUpdateMechanicCharge = async (jobId: string, charge: number) => {
+    try {
+      await updateJobCard.mutateAsync({
+        id: Number(jobId),
+        data: { mechanicCharge: charge },
+      });
+      toast({ title: 'Mechanic amount updated', description: `Mechanic amount set to ${charge}` });
+    } catch (error) {
+      toast({ title: 'Failed to update mechanic amount', description: 'Please try again.', variant: 'destructive' });
+    }
+  };
+
   const jobCards: JobCard[] = useMemo(
     () =>
       (data ?? []).map((job) => ({
@@ -85,6 +98,7 @@ export const JobCards: React.FC = () => {
         services: [`Spare Parts: ${(job.sparePart_id ?? job.SparePart_id)?.length ?? 0}`],
         status: mapStatus(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
         estimatedCost: 0,
+        mechanicCharge: job.mechanicCharge,
         assignedTo: job.ownerPhone || 'N/A',
         createdAt: new Date().toISOString().split('T')[0],
         dueDate: new Date().toISOString().split('T')[0],
@@ -241,6 +255,7 @@ export const JobCards: React.FC = () => {
           onUpdateParts={handleUpdateParts}
           onStatusChange={handleStatusChange}
           onUpdateDueDate={handleUpdateDueDate}
+          onUpdateMechanicCharge={handleUpdateMechanicCharge}
         />
       )}
     </div>

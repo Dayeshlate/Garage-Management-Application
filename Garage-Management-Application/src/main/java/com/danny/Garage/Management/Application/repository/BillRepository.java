@@ -15,7 +15,7 @@ public interface BillRepository extends JpaRepository<Bill,Long> {
 
     List<Bill> findByJobCardVehicleUserId(Long id);
 
-    List<Bill> findByLabourAmountIsNullAndBillDateAfter(LocalDateTime date);
+    List<Bill> findByMechanicAmountIsNullAndBillDateAfter(LocalDateTime date);
 
     List<Bill> findByBillStatusAndBillDateAfter(BillStatus finalized, LocalDateTime date);
 

@@ -12,8 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
-import com.danny.Garage.Management.Application.service.MyUserDetailsService;
 import com.danny.Garage.Management.Application.utils.JwtFilter;
 
 @Configuration
@@ -22,11 +22,9 @@ import com.danny.Garage.Management.Application.utils.JwtFilter;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-    private final MyUserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtFilter jwtFilter, MyUserDetailsService userDetailsService) {
+    public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
-        this.userDetailsService = userDetailsService;
     }
 
     @Bean
@@ -47,8 +45,9 @@ public class SecurityConfig {
                 })
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN", "MECHANIC")
+                    .requestMatchers("/user/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

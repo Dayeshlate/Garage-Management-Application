@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authApi } from '@/api/auth';
 import { ApiError } from '@/api/config';
+import { useSettings } from './SettingsContext';
 
 interface User {
   id: number;
@@ -9,6 +10,8 @@ interface User {
   role: 'ADMIN' | 'USER' | 'MECHANIC';
   phone?: string;
   vehicle_ids?: number[];
+  currency?: string;
+  taxRate?: number;
 }
 
 interface AuthContextType {
@@ -45,6 +48,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const { initializeFromUser } = useSettings();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,30 +57,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        if (!parsed?.token || parsed?.token === 'demo-token') {
-          localStorage.removeItem('garage_user');
+        const token = parsed?.token || localStorage.getItem('token');
+        if (token && token !== 'demo-token') {
+          setUser({ ...parsed, token: undefined } as User);
+          initializeFromUser(parsed.currency, parsed.taxRate);
         } else {
-          setUser(parsed);
+          localStorage.removeItem('garage_user');
+          localStorage.removeItem('token');
         }
       } catch {
         localStorage.removeItem('garage_user');
+        localStorage.removeItem('token');
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [initializeFromUser]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
+      // Clear any stale session before attempting a new login.
+      localStorage.removeItem('garage_user');
+      localStorage.removeItem('token');
+
       const response = await authApi.login({ email, password });
+      if (!response?.token) {
+        setUser(null);
+        localStorage.removeItem('garage_user');
+        localStorage.removeItem('token');
+        return false;
+      }
       const userData: User = {
         ...response.user,
         role: response.user?.role ?? 'USER',
       };
       setUser(userData);
+      initializeFromUser(userData.currency, userData.taxRate);
       localStorage.setItem('garage_user', JSON.stringify({ ...userData, token: response.token }));
+      localStorage.setItem('token', response.token);
       return true;
     } catch (error) {
+      setUser(null);
+      localStorage.removeItem('garage_user');
+      localStorage.removeItem('token');
       console.error('Login error:', getAuthErrorMessage(error, 'Login'));
       return false;
     } finally {
@@ -100,6 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('garage_user');
+    localStorage.removeItem('token');
   };
 
   return (

@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,7 +32,7 @@ public class Bill {
 
     private LocalDateTime billDate;
 
-    private BigDecimal labourAmount;
+    private BigDecimal mechanicAmount;
 
     private String paymentMode;
 
@@ -41,6 +42,9 @@ public class Bill {
     private BillStatus billStatus;
 
     private BigDecimal sparePartAmount;
+
+    @Column(length = 10)
+    private String currency;
 
     @OneToOne
     @JoinColumn(name = "jobcard_id")

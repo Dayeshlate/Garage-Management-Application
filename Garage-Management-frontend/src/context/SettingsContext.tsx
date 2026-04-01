@@ -24,6 +24,7 @@ interface SettingsContextType {
   setTaxRate: (rate: number) => void;
   formatCurrency: (amount: number) => string;
   currencySymbol: string;
+  initializeFromUser: (userCurrency?: string, userTaxRate?: number) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -69,6 +70,15 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const setCurrency = (c: Currency) => setCurrencyState(c);
   const setTaxRate = (r: number) => setTaxRateState(r);
 
+  const initializeFromUser = (userCurrency?: string, userTaxRate?: number) => {
+    if (userCurrency && (userCurrency in currencyMap)) {
+      setCurrencyState(userCurrency as Currency);
+    }
+    if (userTaxRate !== undefined && userTaxRate !== null) {
+      setTaxRateState(userTaxRate);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     const config = currencyMap[currency];
     return `${config.symbol}${amount.toLocaleString()}`;
@@ -77,7 +87,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const currencySymbol = currencyMap[currency].symbol;
 
   return (
-    <SettingsContext.Provider value={{ theme, setTheme, currency, setCurrency, taxRate, setTaxRate, formatCurrency, currencySymbol }}>
+    <SettingsContext.Provider value={{ theme, setTheme, currency, setCurrency, taxRate, setTaxRate, formatCurrency, currencySymbol, initializeFromUser }}>
       {children}
     </SettingsContext.Provider>
   );

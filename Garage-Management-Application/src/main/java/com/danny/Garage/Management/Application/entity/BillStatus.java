@@ -1,7 +1,7 @@
 package com.danny.Garage.Management.Application.entity;
 
 public enum BillStatus {
-    PENDING_LABOUR,
+    PENDING_MECHANIC,
     FINALIZED,
     PAID
 }

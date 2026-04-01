@@ -31,7 +31,17 @@ export const Login = React.forwardRef<HTMLDivElement>((_, ref) => {
 
     if (success) {
       toast.success('Welcome back!', { id: LOGIN_TOAST_ID });
-      navigate('/dashboard');
+      const stored = localStorage.getItem('garage_user');
+      let role: 'ADMIN' | 'USER' | 'MECHANIC' = 'USER';
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          role = parsed?.role ?? 'USER';
+        } catch {
+          role = 'USER';
+        }
+      }
+      navigate(role === 'ADMIN' ? '/dashboard' : '/my-dashboard');
     } else {
       toast.error('Login failed. Please check your credentials.', { id: LOGIN_TOAST_ID });
     }

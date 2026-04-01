@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LabourUpdateDTO {
+public class MechanicUpdateDTO {
     private Long billId;
-    private BigDecimal labourAmount;
+    private BigDecimal mechanicAmount;
 }

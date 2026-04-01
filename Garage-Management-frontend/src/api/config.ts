@@ -11,18 +11,23 @@ const apiClient = axios.create({
 
 // Attach auth token to every request
 apiClient.interceptors.request.use((config) => {
+  let token: string | undefined;
   const user = localStorage.getItem('garage_user');
   if (user) {
     try {
       const parsed = JSON.parse(user);
-      if (parsed.token && parsed.token !== 'demo-token') {
-        config.headers.Authorization = `Bearer ${parsed.token}`;
-      } else if (parsed.token === 'demo-token') {
-        localStorage.removeItem('garage_user');
-      }
+      token = parsed?.token;
     } catch {
-      // ignore
+      // Ignore parse failure and try legacy token key below.
     }
+  }
+
+  if (!token) {
+    token = localStorage.getItem('token') || undefined;
+  }
+
+  if (token && token !== 'demo-token') {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -31,20 +36,24 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const status = error.response?.status || 0;
-    const responseData = error.response?.data;
-
-    if (status === 401 || status === 403) {
+    const status = error.response?.status;
+    const requestUrl = String(error.config?.url || '');
+    // Clear session only on unauthorized responses.
+    // 403 can happen on role-protected routes and should not force logout.
+    if (status === 401) {
       localStorage.removeItem('garage_user');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
 
-    const message =
-      (typeof responseData === 'string' && responseData) ||
-      responseData?.message ||
-      (status === 0 ? 'Cannot connect to backend. Configure VITE_API_URL and start your API server.' : error.message) ||
-      'Request failed';
-
-    return Promise.reject(new ApiError(status, message));
+    // If user endpoints return 403, session token is usually stale/invalid.
+    // Reset auth state to prevent repeated forbidden loops.
+    if (status === 403 && requestUrl.startsWith('/user/')) {
+      localStorage.removeItem('garage_user');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    throw new ApiError(status || 0, error.response?.data?.message || error.message);
   }
 );
 

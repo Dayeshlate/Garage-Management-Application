@@ -7,15 +7,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.danny.Garage.Management.Application.dto.JobCardDTO;
+import com.danny.Garage.Management.Application.dto.UserDTO;
 import com.danny.Garage.Management.Application.entity.Bill;
 import com.danny.Garage.Management.Application.entity.BillStatus;
 import com.danny.Garage.Management.Application.entity.JobCard;
 import com.danny.Garage.Management.Application.entity.JobStatus;
 import com.danny.Garage.Management.Application.entity.SparePart;
 import com.danny.Garage.Management.Application.entity.Vehicle;
+import com.danny.Garage.Management.Application.repository.BillRepository;
 import com.danny.Garage.Management.Application.repository.JobCardRepository;
 import com.danny.Garage.Management.Application.repository.SparePartRepository;
 
@@ -26,15 +29,21 @@ public class JobCardService {
 
     private SparePartRepository sparePartRepository;
     private JobCardRepository jobCardRepository;
+    private BillRepository billRepository;
     private UserService userService;
-    private VehicleService vehicleService;
+
+    @Value("${billing.tax}")
+    private BigDecimal tax;
+
+    @Value("${billing.discount}")
+    private BigDecimal discount;
 
     public JobCardService(SparePartRepository sparePartRepository, VehicleService vehicleService,
-            JobCardRepository jobCardRepository, UserService userService) {
+            JobCardRepository jobCardRepository, UserService userService, BillRepository billRepository) {
         this.jobCardRepository = jobCardRepository;
         this.sparePartRepository = sparePartRepository;
-        this.vehicleService = vehicleService;
         this.userService = userService;
+        this.billRepository = billRepository;
     }
 
     @Transactional
@@ -55,6 +64,13 @@ public class JobCardService {
                 .collect(Collectors.toSet());
 
         jobCard.setSpareParts(spareParts);
+    }
+
+    if (dto.getMechanicCharge() != null) {
+        if (dto.getMechanicCharge() < 0) {
+            throw new RuntimeException("Mechanic amount cannot be negative");
+        }
+        jobCard.setMechanicCharge(BigDecimal.valueOf(dto.getMechanicCharge()));
     }
 
     if (jobCard.getJobStatus() == JobStatus.COMPLETED
@@ -82,17 +98,59 @@ public class JobCardService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         bill.setSparePartAmount(spareTotal);
-        bill.setLabourAmount(null);
+        bill.setMechanicAmount(null);
         bill.setTotalPayment(spareTotal);
         bill.setBillDate(LocalDateTime.now());
-        bill.setBillStatus(BillStatus.PENDING_LABOUR);
+        bill.setBillStatus(BillStatus.PENDING_MECHANIC);
+        
+        // Set the currency from the vehicle owner's settings
+        if (jobCard.getVehicle() != null && jobCard.getVehicle().getUser() != null) {
+            String userCurrency = jobCard.getVehicle().getUser().getCurrency();
+            bill.setCurrency(userCurrency != null ? userCurrency : "USD");
+        } else {
+            bill.setCurrency("USD");
+        }
 
+        billRepository.save(bill);
         jobCard.setBill(bill);
+    }
+
+    if (jobCard.getBill() != null) {
+        syncBillWithMechanicAmount(jobCard);
     }
 
     JobCard saved = jobCardRepository.save(jobCard);
     return toDto(saved);
 }
+
+    private void syncBillWithMechanicAmount(JobCard jobCard) {
+        Bill bill = jobCard.getBill();
+        if (bill == null) {
+            return;
+        }
+
+        BigDecimal spareAmount = bill.getSparePartAmount() != null ? bill.getSparePartAmount() : BigDecimal.ZERO;
+        BigDecimal mechanicAmount = jobCard.getMechanicCharge();
+
+        if (mechanicAmount == null) {
+            bill.setMechanicAmount(null);
+            bill.setTotalPayment(spareAmount);
+            bill.setBillStatus(BillStatus.PENDING_MECHANIC);
+            return;
+        }
+
+        bill.setMechanicAmount(mechanicAmount);
+
+        BigDecimal subtotal = spareAmount.add(mechanicAmount);
+        BigDecimal taxAmount = subtotal.multiply(tax);
+        BigDecimal discountAmount = subtotal.multiply(discount);
+        BigDecimal total = subtotal.add(taxAmount).subtract(discountAmount);
+
+        bill.setTotalPayment(total);
+        if (bill.getBillStatus() != BillStatus.PAID) {
+            bill.setBillStatus(BillStatus.FINALIZED);
+        }
+    }
 
     public Long getAllJobCardsCount() {
         Long allJobCards = (long) jobCardRepository.findByJobStatusNot(JobStatus.DELIVERED).size();
@@ -100,14 +158,20 @@ public class JobCardService {
     }
 
     public List<JobCardDTO> getAllActiveJobCardForUser() {
-        Long id = userService.getCurrentUser().getId();
-        List<JobCard> alljobcards = jobCardRepository.findByVehicleUserIdAndJobStatusNot(id, JobStatus.DELIVERED);
+        UserDTO user = userService.getCurrentUser();
+        if (user == null) {
+            return List.of();
+        }
+        List<JobCard> alljobcards = jobCardRepository.findByVehicleUserIdAndJobStatusNot(user.getId(), JobStatus.DELIVERED);
         return alljobcards.stream().map(this::toDto).toList();
     }
 
     public Long getActiveJobCardCountForUser(){
-        Long userId = userService.getCurrentUser().getId();
-        Long count = jobCardRepository.countByUserIdAndJobStatusNot(userId,JobStatus.DELIVERED);
+        UserDTO user = userService.getCurrentUser();
+        if (user == null) {
+            return 0L;
+        }
+        Long count = jobCardRepository.countByUserIdAndJobStatusNot(user.getId(), JobStatus.DELIVERED);
         return count;
     }
 
@@ -160,6 +224,7 @@ public class JobCardService {
                 .ownerPhone(vehicle.getOwnerPhone())
                 .ownerEmail(vehicle.getOwnerEmail())
                 .JobStatus(entity.getJobStatus())
+                .mechanicCharge(entity.getMechanicCharge() != null ? entity.getMechanicCharge().doubleValue() : 0.0)
                 .SparePart_id(
                         entity.getSpareParts()
                                 .stream()

@@ -10,8 +10,14 @@ interface RoleGuardProps {
 export const RoleGuard: React.FC<RoleGuardProps> = ({ allowedRoles, children }) => {
   const { user } = useAuth();
 
-  if (!user || !allowedRoles.includes(user.role)) {
-    const redirectTo = user?.role === 'USER' ? '/my-dashboard' : '/dashboard';
+  // If not authenticated, redirect to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // If authenticated but wrong role, redirect to appropriate dashboard
+  if (!allowedRoles.includes(user.role)) {
+    const redirectTo = user.role === 'USER' ? '/my-dashboard' : '/dashboard';
     return <Navigate to={redirectTo} replace />;
   }
 

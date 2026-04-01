@@ -28,4 +28,6 @@ public class JobCardDTO {
     private String ownerEmail;
 
     private Set<Long> SparePart_id;
+
+    private Double mechanicCharge;
 }

@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import { Save, Building2, Bell, Shield, Palette, Users, Sun, Moon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSettings } from '@/context/SettingsContext';
+import { useUpdateCustomerCurrency } from '@/hooks/use-api';
+import { useAuth } from '@/context/AuthContext';
 
 export const Settings: React.FC = () => {
   const { theme, setTheme, currency, setCurrency, taxRate, setTaxRate } = useSettings();
+  const { user } = useAuth();
+  const updateCurrencyMutation = useUpdateCustomerCurrency();
   const [activeTab, setActiveTab] = useState('general');
   const [formData, setFormData] = useState({
     garageName: 'AutoGarage Pro',
@@ -18,9 +22,61 @@ export const Settings: React.FC = () => {
     lowStockAlerts: true,
   });
 
-  const handleSave = () => {
-    setTaxRate(parseFloat(formData.taxRate) || 0);
-    toast.success('Settings saved successfully!');
+  const syncStoredUserSettings = (nextCurrency: string, nextTaxRate: number) => {
+    const storedUser = localStorage.getItem('garage_user');
+    if (!storedUser) {
+      return;
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUser) as Record<string, unknown>;
+      localStorage.setItem(
+        'garage_user',
+        JSON.stringify({
+          ...parsedUser,
+          currency: nextCurrency,
+          taxRate: nextTaxRate,
+        })
+      );
+    } catch {
+      // Ignore malformed local data and keep runtime settings applied.
+    }
+  };
+
+  const handleCurrencyChange = (nextCurrency: string) => {
+    setCurrency(nextCurrency as any);
+    const parsedTaxRate = parseFloat(formData.taxRate) || 0;
+    syncStoredUserSettings(nextCurrency, parsedTaxRate);
+
+    if (user?.id) {
+      updateCurrencyMutation.mutate(
+        { id: user.id, currency: nextCurrency },
+        {
+          onError: (error) => {
+            const message = error instanceof Error ? error.message : 'Failed to update currency';
+            toast.error(message);
+          },
+        }
+      );
+    }
+  };
+
+  const handleSave = async () => {
+    const parsedTaxRate = parseFloat(formData.taxRate) || 0;
+
+    try {
+      if (user?.id) {
+        await updateCurrencyMutation.mutateAsync({ id: user.id, currency });
+      }
+
+      setTaxRate(parsedTaxRate);
+      syncStoredUserSettings(currency, parsedTaxRate);
+
+      toast.success('Settings saved successfully!');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to save settings';
+      toast.error(message);
+    }
   };
 
   const tabs = [
@@ -39,9 +95,9 @@ export const Settings: React.FC = () => {
           <h1 className="page-title">Settings</h1>
           <p className="text-muted-foreground mt-1">Manage your garage preferences</p>
         </div>
-        <button onClick={handleSave} className="btn-primary">
+        <button onClick={handleSave} className="btn-primary" disabled={updateCurrencyMutation.isPending}>
           <Save className="h-4 w-4" />
-          Save Changes
+          {updateCurrencyMutation.isPending ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
@@ -110,7 +166,7 @@ export const Settings: React.FC = () => {
                     </label>
                     <select
                       value={currency}
-                      onChange={(e) => setCurrency(e.target.value as any)}
+                      onChange={(e) => handleCurrencyChange(e.target.value)}
                       className="input-field"
                     >
                       <option value="USD">USD ($)</option>

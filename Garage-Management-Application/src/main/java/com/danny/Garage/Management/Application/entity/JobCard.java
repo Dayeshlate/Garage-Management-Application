@@ -54,6 +54,9 @@ public class JobCard {
     @Column(nullable=false)
     private LocalDateTime onCreate;
 
+    @Column(columnDefinition = "DECIMAL(10,2) DEFAULT 0")
+    private java.math.BigDecimal mechanicCharge;
+
     @ManyToMany(fetch = FetchType.LAZY,cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "jobcard_sparepart",joinColumns = @JoinColumn(name = "jobcard_id"),inverseJoinColumns = @JoinColumn(name = "sparepart_id"))
     private Set<SparePart> spareParts = new HashSet<>();

@@ -37,4 +37,8 @@ public class UserDTO{
     private String phone;
 
     private List<Long> vehicle_ids;
+
+    private String currency;
+
+    private Integer taxRate;
 } 

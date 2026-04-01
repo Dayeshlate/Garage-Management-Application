@@ -27,7 +27,7 @@ const navigation: { name: string; href: string; icon: any; roles: UserRole[] }[]
   { name: 'Billing', href: '/billing', icon: Receipt, roles: ['ADMIN'] },
   { name: 'Reports', href: '/reports', icon: BarChart3, roles: ['ADMIN'] },
   
-  { name: 'Settings', href: '/settings', icon: Settings, roles: ['ADMIN'] },
+  { name: 'Settings', href: '/settings', icon: Settings, roles: ['ADMIN', 'USER'] },
   // User pages
   { name: 'My Dashboard', href: '/my-dashboard', icon: LayoutDashboard, roles: ['USER'] },
   { name: 'Track Service', href: '/track-service', icon: ClipboardList, roles: ['USER'] },

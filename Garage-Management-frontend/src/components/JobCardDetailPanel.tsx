@@ -23,6 +23,7 @@ export interface JobCardDetail {
   services: string[];
   status: StatusType;
   estimatedCost: number;
+  mechanicCharge?: number;
   assignedTo: string;
   createdAt: string;
   dueDate: string;
@@ -38,6 +39,7 @@ interface JobCardDetailPanelProps {
   onUpdateParts: (jobId: string, parts: { id: string; name: string; price: number; qty: number }[]) => void;
   onStatusChange: (jobId: string, status: StatusType) => void;
   onUpdateDueDate: (jobId: string, dueDate: string) => void;
+  onUpdateMechanicCharge?: (jobId: string, charge: number) => void;
 }
 
 const availableSpareParts: SparePart[] = [
@@ -59,6 +61,7 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
   onUpdateParts,
   onStatusChange,
   onUpdateDueDate,
+  onUpdateMechanicCharge,
 }) => {
   const { formatCurrency } = useSettings();
   const [selectedPart, setSelectedPart] = useState('');
@@ -96,12 +99,14 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
 
   const [draftStatus, setDraftStatus] = useState<StatusType>(job.status);
   const [draftSteps, setDraftSteps] = useState<ServiceStep[]>(job.serviceSteps || getStepsFromStatus(job.status));
+  const [editingMechanicCharge, setEditingMechanicCharge] = useState(job.mechanicCharge || 0);
   const steps = draftSteps;
 
   // Update editingDueDate when job changes
   useEffect(() => {
     setEditingDueDate(job.dueDate);
-  }, [job.dueDate]);
+    setEditingMechanicCharge(job.mechanicCharge || 0);
+  }, [job.dueDate, job.mechanicCharge]);
 
   useEffect(() => {
     setDraftStatus(job.status);
@@ -163,6 +168,34 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
     onUpdateParts(job.id, newParts);
   };
 
+  const handleSave = () => {
+    let changesMade = false;
+
+    // Save mechanic charge if changed
+    if (editingMechanicCharge !== job.mechanicCharge && onUpdateMechanicCharge) {
+      onUpdateMechanicCharge(job.id, editingMechanicCharge);
+      changesMade = true;
+    }
+
+    // Save due date if changed
+    if (editingDueDate !== job.dueDate) {
+      onUpdateDueDate(job.id, editingDueDate);
+      changesMade = true;
+    }
+
+    if (changesMade) {
+      toast({
+        title: 'Job card saved',
+        description: 'All changes have been saved successfully.',
+      });
+    } else {
+      toast({
+        title: 'No changes',
+        description: 'No pending changes to save.',
+      });
+    }
+  };
+
   const totalPartsCost = parts.reduce((sum, p) => sum + p.price * p.qty, 0);
 
   return (
@@ -202,9 +235,14 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
               </Select>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleSave} className="gap-2" size="sm">
+              Save Changes
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         <div className="p-6 space-y-6">
@@ -264,6 +302,30 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
               <DollarSign className="h-4 w-4 text-accent mx-auto mb-1" />
               <p className="text-xs text-muted-foreground">Est. Cost</p>
               <p className="text-sm font-medium">{formatCurrency(job.estimatedCost)}</p>
+            </div>
+            <div className="bg-muted/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="h-4 w-4 text-accent" />
+                <p className="text-xs text-muted-foreground">Mechanic Amount</p>
+              </div>
+              <input
+                type="number"
+                value={editingMechanicCharge}
+                onChange={(e) => setEditingMechanicCharge(Number(e.target.value))}
+                onBlur={(e) => {
+                  const newCharge = Number(e.target.value);
+                  if (newCharge !== job.mechanicCharge && onUpdateMechanicCharge) {
+                    onUpdateMechanicCharge(job.id, newCharge);
+                    toast({
+                      title: 'Mechanic amount updated',
+                      description: `Mechanic amount set to ${formatCurrency(newCharge)}`,
+                    });
+                  }
+                }}
+                className="input-field text-sm w-full"
+                step="0.01"
+                min="0"
+              />
             </div>
           </div>
 

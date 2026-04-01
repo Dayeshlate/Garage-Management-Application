@@ -1,6 +1,7 @@
 package com.danny.Garage.Management.Application.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.danny.Garage.Management.Application.dto.BillDTO;
 import com.danny.Garage.Management.Application.dto.JobCardDTO;
-import com.danny.Garage.Management.Application.dto.LabourUpdateDTO;
+import com.danny.Garage.Management.Application.dto.MechanicUpdateDTO;
+import com.danny.Garage.Management.Application.dto.UserDTO;
 import com.danny.Garage.Management.Application.dto.VehicleDTO;
 import com.danny.Garage.Management.Application.entity.JobStatus;
 import com.danny.Garage.Management.Application.entity.VehicleStatus;
@@ -47,7 +49,7 @@ public class AdminController {
     // ================================== Users =====================================================
 
     @GetMapping("/getRegisterUserCount")
-    public ResponseEntity getRegisterUserCunt(@RequestParam Long days) {
+    public ResponseEntity<Long> getRegisterUserCunt(@RequestParam Long days) {
         Long count = userService.getCountOfRegisterUser(days);
         return ResponseEntity.ok(count);
     }
@@ -56,6 +58,13 @@ public class AdminController {
     public ResponseEntity<Long> getAllUserCount() {
         Long count = userService.getTotalUser();
         return ResponseEntity.ok(count);
+    }
+
+    @PutMapping("/user/{userId}/currency")
+    public ResponseEntity<UserDTO> updateUserCurrency(@PathVariable Long userId, @RequestBody Map<String, String> request) {
+        String currency = request.get("currency");
+        UserDTO updatedUser = userService.updateUserCurrency(userId, currency);
+        return ResponseEntity.ok(updatedUser);
     }
 
     // ================================== Bill =======================================================
@@ -67,14 +76,14 @@ public class AdminController {
         return ResponseEntity.ok(billDTOs);
     }
 
-    @GetMapping("/bill/pending-labour")
+    @GetMapping("/bill/pending-mechanic")
     public List<BillDTO> getPendingBills() {
-        return billService.getPendingLabourBills();
+        return billService.getPendingMechanicBills();
     }
 
-    @PutMapping("/bill/update-labourbill")
-    public void updateLabour(@RequestBody LabourUpdateDTO dto) {
-        billService.updateLabourAmount(dto);
+    @PutMapping("/bill/update-mechanicbill")
+    public void updateMechanic(@RequestBody MechanicUpdateDTO dto) {
+        billService.updateMechanicAmount(dto);
     }
 
     // ================================== JobCard=======================================================
