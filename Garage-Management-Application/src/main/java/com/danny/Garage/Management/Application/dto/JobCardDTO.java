@@ -29,5 +29,7 @@ public class JobCardDTO {
 
     private Set<Long> SparePart_id;
 
+    private Set<String> sparePartNames;
+
     private Double mechanicCharge;
 }

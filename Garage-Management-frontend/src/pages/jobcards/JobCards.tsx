@@ -4,6 +4,7 @@ import { DataTable } from '@/components/DataTable';
 import { StatusBadge, StatusType } from '@/components/StatusBadge';
 import { JobCardDetailPanel, type JobCardDetail } from '@/components/JobCardDetailPanel';
 import { useJobCards, useUpdateJobCard } from '@/hooks/use-api';
+import { useInventory } from '@/hooks/use-api';
 import { toast } from '@/hooks/use-toast';
 
 interface JobCard {
@@ -18,6 +19,9 @@ interface JobCard {
   assignedTo: string;
   createdAt: string;
   dueDate: string;
+  sparePartIds?: number[];
+  sparePartNames?: string[];
+  spareParts?: { id: string; name: string; price: number; qty: number }[];
 }
 
 const mapStatus = (status: string): StatusType => {
@@ -35,6 +39,18 @@ export const JobCards: React.FC = () => {
   const updateJobCard = useUpdateJobCard();
 
   const { data, isLoading, error, refetch } = useJobCards();
+  const { data: inventoryData = [] } = useInventory();
+
+  const inventoryById = useMemo(
+    () =>
+      Object.fromEntries(
+        inventoryData.map((item) => [
+          Number(item.id),
+          { name: item.partName, price: item.partPrice },
+        ])
+      ),
+    [inventoryData]
+  );
 
   const handleStatusChange = async (jobId: string, newStatus: StatusType) => {
     const previousStatus = selectedJob?.id === jobId ? selectedJob.status : null;
@@ -68,8 +84,30 @@ export const JobCards: React.FC = () => {
     toast({ title: 'Steps updated', description: 'Service progress saved.' });
   };
 
-  const handleUpdateParts = () => {
-    toast({ title: 'Parts updated', description: 'Spare parts list saved.' });
+  const handleUpdateParts = async (jobId: string, parts: { id: string; name: string; price: number; qty: number }[]) => {
+    const partIds = Array.from(new Set(parts.map((p) => Number(p.id)).filter((id) => Number.isFinite(id))));
+
+    try {
+      await updateJobCard.mutateAsync({
+        id: Number(jobId),
+        data: { sparePart_id: partIds, SparePart_id: partIds },
+      });
+      setSelectedJob((prev) =>
+        prev && prev.id === jobId
+          ? {
+              ...prev,
+              sparePartIds: partIds,
+              sparePartNames: parts.map((p) => p.name),
+              spareParts: parts,
+              services: parts.length > 0 ? parts.map((p) => p.name) : ['No spare parts'],
+            }
+          : prev
+      );
+      await refetch();
+      toast({ title: 'Parts updated', description: 'Spare parts saved to this job card.' });
+    } catch {
+      toast({ title: 'Failed to update parts', description: 'Could not save spare parts to backend.', variant: 'destructive' });
+    }
   };
 
   const handleUpdateDueDate = (jobId: string, dueDate: string) => {
@@ -90,20 +128,33 @@ export const JobCards: React.FC = () => {
 
   const jobCards: JobCard[] = useMemo(
     () =>
-      (data ?? []).map((job) => ({
-        id: String(job.id),
-        jobNumber: `JC-${job.id}`,
-        customer: job.ownerName || `Customer #${job.vehicle_id ?? job.Vehicle_id ?? 'N/A'}`,
-        vehicle: `${job.vehicleBrand || 'N/A'} ${job.vehicleModel || 'N/A'} (${job.vehicleNumber || 'N/A'})`,
-        services: [`Spare Parts: ${(job.sparePart_id ?? job.SparePart_id)?.length ?? 0}`],
-        status: mapStatus(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
-        estimatedCost: 0,
-        mechanicCharge: job.mechanicCharge,
-        assignedTo: job.ownerPhone || 'N/A',
-        createdAt: new Date().toISOString().split('T')[0],
-        dueDate: new Date().toISOString().split('T')[0],
-      })),
-    [data]
+      (data ?? []).map((job) => {
+        const constPartIds = (job.sparePart_id ?? job.SparePart_id ?? []).map((id) => Number(id));
+        const constPartNames = job.sparePartNames ?? constPartIds.map((id) => inventoryById[id]?.name ?? `Part #${id}`);
+        const constParts = constPartIds.map((id) => ({
+          id: String(id),
+          name: inventoryById[id]?.name ?? `Part #${id}`,
+          price: inventoryById[id]?.price ?? 0,
+          qty: 1,
+        }));
+        return {
+          id: String(job.id),
+          jobNumber: `JC-${job.id}`,
+          customer: job.ownerName || `Customer #${job.vehicle_id ?? job.Vehicle_id ?? 'N/A'}`,
+          vehicle: `${job.vehicleBrand || 'N/A'} ${job.vehicleModel || 'N/A'} (${job.vehicleNumber || 'N/A'})`,
+          services: constPartNames.length > 0 ? constPartNames : ['No spare parts'],
+          status: mapStatus(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
+          estimatedCost: 0,
+          mechanicCharge: job.mechanicCharge,
+          assignedTo: job.ownerPhone || 'N/A',
+          createdAt: new Date().toISOString().split('T')[0],
+          dueDate: new Date().toISOString().split('T')[0],
+          sparePartIds: constPartIds,
+          sparePartNames: constPartNames,
+          spareParts: constParts,
+        };
+      }),
+    [data, inventoryById]
   );
 
   const filteredJobCards = jobCards.filter((job) => {

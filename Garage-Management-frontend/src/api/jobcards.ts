@@ -17,6 +17,7 @@ export interface JobCardDTO {
   ownerEmail?: string;
   sparePart_id?: number[];
   SparePart_id?: number[];
+  sparePartNames?: string[];
   mechanicCharge?: number;
 }
 
@@ -38,6 +39,7 @@ const normalizeJobCard = (raw: any): JobCardDTO => ({
   ownerEmail: raw?.ownerEmail,
   sparePart_id: raw?.sparePart_id ?? raw?.SparePart_id,
   SparePart_id: raw?.SparePart_id ?? raw?.sparePart_id,
+  sparePartNames: raw?.sparePartNames ?? raw?.SparePartNames,
   mechanicCharge: raw?.mechanicCharge ?? raw?.labourCharge,
 });
 
@@ -62,10 +64,12 @@ export const jobCardsApi = {
   create: (): Promise<JobCardDTO> => unsupported('Create job card endpoint is not available in backend yet'),
   update: async (id: number, data: Partial<JobCardDTO>): Promise<JobCardDTO> => {
     const nextStatus = data.jobStatus ?? data.JobStatus;
+    const nextSparePartIds = data.sparePart_id ?? data.SparePart_id;
     const updated = await apiClient.post('/admin/jobcard/update', {
       id,
       ...data,
       ...(nextStatus ? { jobStatus: nextStatus, JobStatus: nextStatus } : {}),
+      ...(nextSparePartIds ? { sparePart_id: nextSparePartIds, SparePart_id: nextSparePartIds } : {}),
     });
     return normalizeJobCard(updated);
   },

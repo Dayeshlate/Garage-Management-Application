@@ -5,6 +5,7 @@ import { StatusBadge, StatusType } from '@/components/StatusBadge';
 import { ServiceProgressTracker, ServiceStep } from '@/components/ServiceProgressTracker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettings } from '@/context/SettingsContext';
+import { useInventory } from '@/hooks/use-api';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 
@@ -42,17 +43,6 @@ interface JobCardDetailPanelProps {
   onUpdateMechanicCharge?: (jobId: string, charge: number) => void;
 }
 
-const availableSpareParts: SparePart[] = [
-  { id: 'sp1', name: 'Oil Filter', price: 15, stock: 45 },
-  { id: 'sp2', name: 'Air Filter', price: 25, stock: 30 },
-  { id: 'sp3', name: 'Brake Pads (Set)', price: 85, stock: 20 },
-  { id: 'sp4', name: 'Spark Plug', price: 12, stock: 60 },
-  { id: 'sp5', name: 'Timing Belt', price: 45, stock: 15 },
-  { id: 'sp6', name: 'Coolant (1L)', price: 18, stock: 40 },
-  { id: 'sp7', name: 'Wiper Blades', price: 22, stock: 35 },
-  { id: 'sp8', name: 'Battery', price: 120, stock: 10 },
-];
-
 export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
   job,
   open,
@@ -64,8 +54,15 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
   onUpdateMechanicCharge,
 }) => {
   const { formatCurrency } = useSettings();
+  const { data: inventoryData = [] } = useInventory();
   const [selectedPart, setSelectedPart] = useState('');
   const [editingDueDate, setEditingDueDate] = useState(job.dueDate);
+  const availableSpareParts: SparePart[] = inventoryData.map((item) => ({
+    id: String(item.id),
+    name: item.partName,
+    price: item.partPrice,
+    stock: item.partStock,
+  }));
   const parts = job.spareParts || [];
   const getStepsFromStatus = (status: StatusType): ServiceStep[] => {
     if (status === 'completed') {
@@ -370,6 +367,9 @@ export const JobCardDetailPanel: React.FC<JobCardDetailPanelProps> = ({
                 Add
               </Button>
             </div>
+            {availableSpareParts.length === 0 && (
+              <p className="text-xs text-muted-foreground mb-3">No inventory items found. Add spare parts in Inventory first.</p>
+            )}
 
             {/* Parts List */}
             {parts.length > 0 ? (

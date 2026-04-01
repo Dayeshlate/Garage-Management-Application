@@ -38,41 +38,41 @@ export const Inventory: React.FC = () => {
 
   const inventory: InventoryItem[] = useMemo(
     () =>
-      (data ?? []).map((item) => ({
+      (data ?? []).map((item) => {
+        const constManufacture = item.manufacture || 'General';
+
+        return {
         id: String(item.id),
         name: item.partName,
         sku: `SP-${item.id}`,
-        category: item.manufacture || 'General',
+        category: constManufacture || 'General',
         quantity: item.partStock,
         unit: 'pcs',
         minStock: 5,
         unitPrice: item.partPrice,
-        supplier: item.manufacture || 'Unknown',
+        supplier: constManufacture || 'Unknown',
         lastUpdated: new Date().toISOString().split('T')[0],
-      })),
+        };
+      }),
     [data]
   );
 
   const handleAddItem = async (item: {
-    name: string;
-    sku: string;
-    category: string;
-    quantity: number;
-    unit: string;
-    minStock: number;
-    unitPrice: number;
-    supplier: string;
+    partName: string;
+    manufacture: string;
+    partStock: number;
+    partPrice: number;
   }) => {
     try {
       await createInventoryItem.mutateAsync({
-        partName: item.name,
-        partStock: item.quantity,
-        partPrice: item.unitPrice,
-        manufacture: item.supplier || item.category,
+        partName: item.partName,
+        partStock: item.partStock,
+        partPrice: item.partPrice,
+        manufacture: item.manufacture,
         jobCardIds: null,
       });
       await refetch();
-      toast({ title: 'Item added', description: `${item.name} has been added to inventory.` });
+      toast({ title: 'Item added', description: `${item.partName} has been added to inventory.` });
     } catch {
       toast({ title: 'Failed to add item', description: 'Could not create inventory item in backend.', variant: 'destructive' });
     }

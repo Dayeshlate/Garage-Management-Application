@@ -15,6 +15,16 @@ const currencyMap: Record<Currency, CurrencyConfig> = {
   INR: { symbol: '₹', code: 'INR' },
 };
 
+const resolveDefaultCurrency = (): Currency => {
+  const envCurrency = String(import.meta.env.VITE_DEFAULT_CURRENCY || '').toUpperCase();
+  if (envCurrency in currencyMap) {
+    return envCurrency as Currency;
+  }
+  return 'USD';
+};
+
+const DEFAULT_CURRENCY = resolveDefaultCurrency();
+
 interface SettingsContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
@@ -45,7 +55,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const [currency, setCurrencyState] = useState<Currency>(() => {
     const stored = localStorage.getItem('garage_currency');
-    return (stored as Currency) || 'USD';
+    if (stored && stored in currencyMap) {
+      return stored as Currency;
+    }
+    return DEFAULT_CURRENCY;
   });
 
   const [taxRate, setTaxRateState] = useState<number>(() => {
@@ -71,8 +84,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const setTaxRate = (r: number) => setTaxRateState(r);
 
   const initializeFromUser = (userCurrency?: string, userTaxRate?: number) => {
-    if (userCurrency && (userCurrency in currencyMap)) {
+    const storedCurrency = localStorage.getItem('garage_currency');
+    if (!storedCurrency && userCurrency && (userCurrency in currencyMap)) {
       setCurrencyState(userCurrency as Currency);
+    }
+    if (!storedCurrency && !userCurrency) {
+      setCurrencyState(DEFAULT_CURRENCY);
     }
     if (userTaxRate !== undefined && userTaxRate !== null) {
       setTaxRateState(userTaxRate);

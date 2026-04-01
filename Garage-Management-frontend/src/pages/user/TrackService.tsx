@@ -44,18 +44,25 @@ export const TrackService: React.FC = () => {
   const { formatCurrency } = useSettings();
   const { data, isLoading, error } = useUserJobCards();
 
-  const myServices = (data ?? []).map((job) => ({
-    id: `JC-${job.id}`,
-    vehicle: job.vehicleNumber
-      ? `${job.vehicleBrand ?? 'Vehicle'} ${job.vehicleModel ?? ''}`.trim()
-      : `Vehicle #${job.vehicle_id ?? job.Vehicle_id ?? 'N/A'}`,
-    plateNo: job.vehicleNumber ?? '-',
-    service: `Spare Parts: ${(job.sparePart_id ?? job.SparePart_id)?.length ?? 0}`,
-    status: toStatus(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
-    mechanicCharge: job.mechanicCharge ?? 0,
-    estimatedDate: new Date().toISOString().split('T')[0],
-    steps: buildSteps(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
-  }));
+  const myServices = (data ?? []).map((job) => {
+    const constSparePartNames = job.sparePartNames ?? [];
+    const constSparePartCount = (job.sparePart_id ?? job.SparePart_id)?.length ?? 0;
+
+    return {
+      id: `JC-${job.id}`,
+      vehicle: job.vehicleNumber
+        ? `${job.vehicleBrand ?? 'Vehicle'} ${job.vehicleModel ?? ''}`.trim()
+        : `Vehicle #${job.vehicle_id ?? job.Vehicle_id ?? 'N/A'}`,
+      plateNo: job.vehicleNumber ?? '-',
+      service: constSparePartNames.length > 0
+        ? `Spare Parts: ${constSparePartNames.join(', ')}`
+        : `Spare Parts: ${constSparePartCount}`,
+      status: toStatus(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
+      mechanicCharge: job.mechanicCharge ?? 0,
+      estimatedDate: new Date().toISOString().split('T')[0],
+      steps: buildSteps(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
+    };
+  });
 
   return (
     <div className="space-y-6">

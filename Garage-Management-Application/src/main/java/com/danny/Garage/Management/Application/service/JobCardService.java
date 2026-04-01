@@ -129,7 +129,13 @@ public class JobCardService {
             return;
         }
 
-        BigDecimal spareAmount = bill.getSparePartAmount() != null ? bill.getSparePartAmount() : BigDecimal.ZERO;
+        BigDecimal spareAmount = jobCard.getSpareParts()
+                .stream()
+                .map(SparePart::getPartPrice)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        bill.setSparePartAmount(spareAmount);
         BigDecimal mechanicAmount = jobCard.getMechanicCharge();
 
         if (mechanicAmount == null) {
@@ -230,6 +236,11 @@ public class JobCardService {
                                 .stream()
                                 .map(SparePart::getId)
                                 .collect(Collectors.toSet()))
+            .sparePartNames(
+                entity.getSpareParts()
+                    .stream()
+                    .map(SparePart::getPartName)
+                    .collect(Collectors.toSet()))
                 .build();
     }
 }

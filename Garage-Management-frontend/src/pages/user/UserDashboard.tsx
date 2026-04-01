@@ -3,6 +3,7 @@ import { Car, ClipboardList, Receipt, ArrowRight, Wrench } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StatCard } from '@/components/StatCard';
 import { StatusBadge, StatusType } from '@/components/StatusBadge';
+import { useSettings } from '@/context/SettingsContext';
 import { useInvoices, useMyVehicles, useUserJobCards } from '@/hooks/use-api';
 
 const toStatus = (status: string): StatusType => {
@@ -13,9 +14,15 @@ const toStatus = (status: string): StatusType => {
 };
 
 export const UserDashboard: React.FC = () => {
+  const { formatCurrency } = useSettings();
   const { data: vehiclesData } = useMyVehicles();
   const { data: jobCardsData } = useUserJobCards();
   const { data: invoicesData } = useInvoices();
+
+  const totalInvoiceAmount = useMemo(
+    () => (invoicesData ?? []).reduce((sum, inv) => sum + (inv.totalBill ?? 0), 0),
+    [invoicesData]
+  );
 
   const activeServices = useMemo(
     () =>
@@ -42,10 +49,11 @@ export const UserDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="My Vehicles" value={String((vehiclesData ?? []).length)} icon={Car} />
         <StatCard title="Active Services" value={String(activeServices.length)} icon={ClipboardList} />
         <StatCard title="Total Invoices" value={String((invoicesData ?? []).length)} icon={Receipt} />
+        <StatCard title="Invoice Amount" value={formatCurrency(totalInvoiceAmount)} icon={Receipt} />
       </div>
 
       <div className="bg-card rounded-xl border border-border">

@@ -8,31 +8,41 @@ interface AddInventoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (item: {
-    name: string;
-    sku: string;
-    category: string;
-    quantity: number;
-    unit: string;
-    minStock: number;
-    unitPrice: number;
-    supplier: string;
+    partName: string;
+    manufacture: string;
+    partStock: number;
+    partPrice: number;
   }) => void;
 }
 
+const partCategories = [
+  'Engine',
+  'Electrical',
+  'Body',
+  'Tyre',
+  'AC',
+  'Brake',
+  'Suspension',
+  'General',
+];
+
 export const AddInventoryDialog: React.FC<AddInventoryDialogProps> = ({ open, onOpenChange, onAdd }) => {
   const [form, setForm] = useState({
-    name: '', sku: '', category: '', quantity: '', unit: '', minStock: '', unitPrice: '', supplier: '',
+    partName: '',
+    manufacture: 'General',
+    partStock: '',
+    partPrice: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAdd({
-      ...form,
-      quantity: parseInt(form.quantity) || 0,
-      minStock: parseInt(form.minStock) || 0,
-      unitPrice: parseFloat(form.unitPrice) || 0,
+      partName: form.partName,
+      manufacture: form.manufacture,
+      partStock: parseInt(form.partStock) || 0,
+      partPrice: parseFloat(form.partPrice) || 0,
     });
-    setForm({ name: '', sku: '', category: '', quantity: '', unit: '', minStock: '', unitPrice: '', supplier: '' });
+    setForm({ partName: '', manufacture: 'General', partStock: '', partPrice: '' });
     onOpenChange(false);
   };
 
@@ -45,42 +55,35 @@ export const AddInventoryDialog: React.FC<AddInventoryDialogProps> = ({ open, on
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="inv-name">Item Name</Label>
-              <Input id="inv-name" placeholder="e.g. Engine Oil 5W-30" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+              <Label htmlFor="part-name">Part Name</Label>
+              <Input id="part-name" placeholder="e.g. Oil Filter" value={form.partName} onChange={(e) => setForm({ ...form, partName: e.target.value })} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="inv-sku">SKU</Label>
-              <Input id="inv-sku" placeholder="e.g. OIL-5W30-01" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} required />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="inv-category">Category</Label>
-              <Input id="inv-category" placeholder="e.g. Lubricants" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="inv-supplier">Supplier</Label>
-              <Input id="inv-supplier" placeholder="Supplier name" value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} required />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="inv-qty">Quantity</Label>
-              <Input id="inv-qty" type="number" placeholder="0" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="inv-unit">Unit</Label>
-              <Input id="inv-unit" placeholder="e.g. Liters" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="inv-min">Min Stock</Label>
-              <Input id="inv-min" type="number" placeholder="0" value={form.minStock} onChange={(e) => setForm({ ...form, minStock: e.target.value })} required />
+              <Label htmlFor="part-category">Category</Label>
+              <select
+                id="part-category"
+                value={form.manufacture}
+                onChange={(e) => setForm({ ...form, manufacture: e.target.value })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                {partCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="inv-price">Unit Price</Label>
-            <Input id="inv-price" type="number" step="0.01" placeholder="0.00" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} required />
+            <Label htmlFor="part-stock">Stock</Label>
+            <Input id="part-stock" type="number" placeholder="0" value={form.partStock} onChange={(e) => setForm({ ...form, partStock: e.target.value })} required />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="part-price">Part Price</Label>
+            <Input id="part-price" type="number" step="0.01" placeholder="0.00" value={form.partPrice} onChange={(e) => setForm({ ...form, partPrice: e.target.value })} required />
+          </div>
+
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit">Add Item</Button>
