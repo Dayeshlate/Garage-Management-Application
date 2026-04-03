@@ -9,6 +9,9 @@ export interface InvoiceDTO {
   billDate: string;
   mechanicAmount: number;
   sparePartAmount: number;
+  subtotal?: number;
+  taxAmount?: number;
+  discountAmount?: number;
   totalBill: number;
   paymentMode: PaymentMode;
   billStatus: InvoiceStatus;

@@ -2,6 +2,7 @@ package com.danny.Garage.Management.Application.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -57,11 +58,21 @@ public class JobCardService {
     }
 
     if (dto.getSparePart_id() != null) {
+        Set<Long> requestedIds = new HashSet<>(dto.getSparePart_id());
 
         Set<SparePart> spareParts = sparePartRepository
-                .findAllById(dto.getSparePart_id())
+            .findAllById(requestedIds)
                 .stream()
                 .collect(Collectors.toSet());
+
+        Set<Long> foundIds = spareParts.stream()
+            .map(SparePart::getId)
+            .collect(Collectors.toSet());
+
+        if (foundIds.size() != requestedIds.size()) {
+            requestedIds.removeAll(foundIds);
+            throw new RuntimeException("Invalid spare part IDs: " + requestedIds);
+        }
 
         jobCard.setSpareParts(spareParts);
     }
@@ -117,6 +128,7 @@ public class JobCardService {
 
     if (jobCard.getBill() != null) {
         syncBillWithMechanicAmount(jobCard);
+        billRepository.save(jobCard.getBill());
     }
 
     JobCard saved = jobCardRepository.save(jobCard);

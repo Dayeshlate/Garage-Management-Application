@@ -1,7 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Download, Eye, Receipt, Calendar, Car, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useInvoices } from '@/hooks/use-api';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const statusConfig = {
   paid: { icon: <CheckCircle className="h-4 w-4 text-green-500" />, label: 'Paid', color: 'text-green-600', border: 'border-border' },
@@ -12,22 +19,52 @@ const statusConfig = {
 export const MyInvoices: React.FC = () => {
   const { formatCurrency } = useSettings();
   const { data, isLoading, error } = useInvoices();
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+
+  const toNumber = (value: unknown): number => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const toUserStatus = (status?: string): 'paid' | 'pending' | 'overdue' => {
+    const normalized = String(status ?? '').toUpperCase();
+    if (normalized === 'PAID') return 'paid';
+    if (normalized === 'OVERDUE') return 'overdue';
+    return 'pending';
+  };
 
   const invoices = useMemo(
     () =>
       (data ?? [])
       .slice()
       .sort((a, b) => Number(b.id) - Number(a.id))
-      .map((invoice) => ({
+      .map((invoice) => {
+        const mechanicAmount = toNumber(invoice.mechanicAmount);
+        const sparePartAmount = toNumber(invoice.sparePartAmount);
+        const subtotal = toNumber(invoice.subtotal);
+        const total = toNumber(invoice.totalBill);
+        const tax = toNumber(invoice.taxAmount);
+
+        return {
         id: `INV-${invoice.id}`,
+        rawId: Number(invoice.id),
         date: invoice.billDate,
         vehicle: `Vehicle #${invoice.jobCard_id}`,
         service: `Job Card #${invoice.jobCard_id}`,
-        amount: invoice.totalBill ?? 0,
-        status: invoice.billStatus === 'PAID' ? 'paid' : 'pending',
-      })),
+        mechanicAmount,
+        sparePartAmount,
+        subtotal,
+        tax,
+        amount: total,
+        paymentMode: invoice.paymentMode ?? 'N/A',
+        billStatus: invoice.billStatus,
+        status: toUserStatus(invoice.billStatus),
+      };
+      }),
     [data]
   );
+
+  const selectedInvoice = invoices.find((inv) => inv.id === selectedInvoiceId) ?? null;
 
   return (
     <div className="space-y-6">
@@ -67,6 +104,7 @@ export const MyInvoices: React.FC = () => {
             <div
               key={inv.id}
               className={`bg-card rounded-xl border p-6 ${config.border}`}
+              onClick={() => setSelectedInvoiceId(inv.id)}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start gap-4">
@@ -113,7 +151,14 @@ export const MyInvoices: React.FC = () => {
                   <p className="text-xl font-bold text-foreground">{formatCurrency(inv.amount)}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="p-2 hover:bg-muted rounded-lg transition-colors" title="View">
+                  <button
+                    className="p-2 hover:bg-muted rounded-lg transition-colors"
+                    title="View"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedInvoiceId(inv.id);
+                    }}
+                  >
                     <Eye className="h-4 w-4 text-muted-foreground" />
                   </button>
                   <button className="p-2 hover:bg-muted rounded-lg transition-colors" title="Download">
@@ -125,6 +170,79 @@ export const MyInvoices: React.FC = () => {
           );
         })}
       </div>
+
+      <Dialog open={!!selectedInvoice} onOpenChange={(open) => !open && setSelectedInvoiceId(null)}>
+        <DialogContent className="max-w-2xl">
+          {selectedInvoice && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedInvoice.id}</DialogTitle>
+                <DialogDescription>
+                  Full invoice details for {selectedInvoice.service}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs text-muted-foreground">Invoice Date</p>
+                    <p className="font-medium text-foreground">
+                      {selectedInvoice.date ? new Date(selectedInvoice.date).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    <p className="font-medium text-foreground capitalize">{selectedInvoice.status}</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs text-muted-foreground">Payment Mode</p>
+                    <p className="font-medium text-foreground">{selectedInvoice.paymentMode}</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs text-muted-foreground">Backend Bill Status</p>
+                    <p className="font-medium text-foreground">{selectedInvoice.billStatus}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border p-4 space-y-3">
+                  <h4 className="font-semibold text-foreground">Amount Breakdown</h4>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Mechanic Amount</span>
+                    <span className="font-medium text-foreground">{formatCurrency(selectedInvoice.mechanicAmount)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Inventory / Spare Parts</span>
+                    <span className="font-medium text-foreground">{formatCurrency(selectedInvoice.sparePartAmount)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="font-medium text-foreground">{formatCurrency(selectedInvoice.subtotal)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Tax</span>
+                    <span className="font-medium text-foreground">{formatCurrency(selectedInvoice.tax)}</span>
+                  </div>
+                  <div className="border-t border-border pt-2 flex items-center justify-between">
+                    <span className="font-semibold text-foreground">Total</span>
+                    <span className="font-bold text-foreground">{formatCurrency(selectedInvoice.amount)}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs text-muted-foreground">Vehicle</p>
+                    <p className="font-medium text-foreground">{selectedInvoice.vehicle}</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs text-muted-foreground">Service Reference</p>
+                    <p className="font-medium text-foreground">{selectedInvoice.service}</p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

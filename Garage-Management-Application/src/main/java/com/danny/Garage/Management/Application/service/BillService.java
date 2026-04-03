@@ -157,14 +157,34 @@ public class BillService {
     }
 
     public BillDTO toDTO(Bill entity) {
+        BigDecimal spareAmount = entity.getSparePartAmount() != null
+            ? entity.getSparePartAmount()
+            : BigDecimal.ZERO;
+
+        BigDecimal mechanicAmount = entity.getMechanicAmount() != null
+            ? entity.getMechanicAmount()
+            : BigDecimal.ZERO;
+
+        BigDecimal subtotal = spareAmount.add(mechanicAmount);
+        BigDecimal taxAmount = BigDecimal.ZERO;
+        BigDecimal discountAmount = BigDecimal.ZERO;
+
+        if (entity.getMechanicAmount() != null) {
+            taxAmount = subtotal.multiply(tax);
+            discountAmount = subtotal.multiply(discount);
+        }
+
         return BillDTO.builder()
                 .id(entity.getId())
                 .billDate(entity.getBillDate())
                 .billStatus(entity.getBillStatus())
-                .sparePartAmount(entity.getSparePartAmount())
+            .sparePartAmount(spareAmount)
                 .mechanicAmount(entity.getMechanicAmount())
                 .paymentMode(entity.getPaymentMode())
                 .totalBill(entity.getTotalPayment())
+            .subtotal(subtotal)
+            .taxAmount(taxAmount)
+            .discountAmount(discountAmount)
                 .currency(entity.getCurrency())
                 .jobCard_id(entity.getJobCard() != null
                         ? entity.getJobCard().getId()

@@ -31,6 +31,12 @@ public class BillDTO {
 
     private BigDecimal sparePartAmount;
 
+    private BigDecimal subtotal;
+
+    private BigDecimal taxAmount;
+
+    private BigDecimal discountAmount;
+
     private String currency;
 
 }
