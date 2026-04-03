@@ -66,7 +66,7 @@ public class UserService {
 
         User user = toEntity(dto, null);
         user.setActivationToken(UUID.randomUUID().toString());
-        user.setIsActive(true);  // Auto-activate users on registration
+        user.setIsActive(false);  
         String activationLink = activationUrl+"/api/auth/activate?activationToken=" + user.getActivationToken();
         String subject = "Activate your garage management application";
         String body = "Click on the following link to activate your account: " + activationLink;

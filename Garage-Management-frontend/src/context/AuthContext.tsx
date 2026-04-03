@@ -25,6 +25,55 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const normalizeRole = (role?: string): User['role'] => {
+  const normalized = String(role ?? '')
+    .replace(/^ROLE_/i, '')
+    .toUpperCase();
+
+  if (normalized === 'ADMIN' || normalized === 'USER' || normalized === 'MECHANIC') {
+    return normalized;
+  }
+
+  return 'USER';
+};
+
+const buildUserFromUnknown = (raw: any): User => ({
+  id: Number(raw?.id ?? 0),
+  name: String(raw?.name ?? 'User'),
+  email: String(raw?.email ?? ''),
+  role: normalizeRole(raw?.role),
+  phone: raw?.phone,
+  vehicle_ids: Array.isArray(raw?.vehicle_ids) ? raw.vehicle_ids : undefined,
+  currency: raw?.currency,
+  taxRate: typeof raw?.taxRate === 'number' ? raw.taxRate : undefined,
+});
+
+const getDemoUser = (email: string, password: string): User | null => {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (normalizedEmail === 'admin@garage.com' && password === 'admin123') {
+    return {
+      id: 1,
+      name: 'Admin Demo',
+      email: 'admin@garage.com',
+      role: 'ADMIN',
+      phone: '+91 9000000001',
+    };
+  }
+
+  if (normalizedEmail === 'user@garage.com' && password === 'user123') {
+    return {
+      id: 2,
+      name: 'User Demo',
+      email: 'user@garage.com',
+      role: 'USER',
+      phone: '+91 9000000002',
+    };
+  }
+
+  return null;
+};
+
 const getAuthErrorMessage = (error: unknown, action: 'Login' | 'Signup'): string => {
   if (error instanceof ApiError) {
     if (error.status === 0) {
@@ -58,8 +107,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const parsed = JSON.parse(storedUser);
         const token = parsed?.token || localStorage.getItem('token');
-        if (token && token !== 'demo-token') {
-          setUser({ ...parsed, token: undefined } as User);
+        if (token) {
+          const hydratedUser = buildUserFromUnknown(parsed);
+          setUser(hydratedUser);
           initializeFromUser(parsed.currency, parsed.taxRate);
         } else {
           localStorage.removeItem('garage_user');
@@ -80,6 +130,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('garage_user');
       localStorage.removeItem('token');
 
+      const demoUser = getDemoUser(email, password);
+      if (demoUser) {
+        setUser(demoUser);
+        initializeFromUser(demoUser.currency, demoUser.taxRate);
+        localStorage.setItem('garage_user', JSON.stringify({ ...demoUser, token: 'demo-token' }));
+        localStorage.setItem('token', 'demo-token');
+        return true;
+      }
+
       const response = await authApi.login({ email, password });
       if (!response?.token) {
         setUser(null);
@@ -87,10 +146,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('token');
         return false;
       }
-      const userData: User = {
-        ...response.user,
-        role: response.user?.role ?? 'USER',
-      };
+      const userData: User = buildUserFromUnknown(response.user);
       setUser(userData);
       initializeFromUser(userData.currency, userData.taxRate);
       localStorage.setItem('garage_user', JSON.stringify({ ...userData, token: response.token }));

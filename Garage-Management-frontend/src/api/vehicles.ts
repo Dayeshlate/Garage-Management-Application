@@ -27,10 +27,20 @@ export type CreateVehicleDto = Omit<VehicleDTO, 'id' | 'vehicleType' | 'vehicleS
 
 const unsupported = (message: string) => Promise.reject(new ApiError(405, message));
 
+const isDemoSession = (): boolean => {
+  const token = localStorage.getItem('token');
+  return token === 'demo-token';
+};
+
 export const vehiclesApi = {
   getAll: (): Promise<VehicleDTO[]> => apiClient.get('/admin/getAllVehicles'),
   getById: (id: number): Promise<VehicleDTO> => apiClient.get(`/admin/vehicle/get/${id}`),
-  getMyVehicles: (): Promise<VehicleDTO[]> => apiClient.get('/user/vehicle/allUservehicle'),
+  getMyVehicles: (): Promise<VehicleDTO[]> => {
+    if (isDemoSession()) {
+      return Promise.resolve([]);
+    }
+    return apiClient.get('/user/vehicle/allUservehicle');
+  },
   getPending: (): Promise<VehicleDTO[]> => apiClient.get('/admin/vehicle/pending'),
   create: (data: CreateVehicleDto): Promise<VehicleDTO> => apiClient.post('/user/vehicle/create', data),
   update: (id: number, data: Partial<VehicleDTO>): Promise<VehicleDTO> => apiClient.put('/admin/vehicle/update', { id, ...data }),

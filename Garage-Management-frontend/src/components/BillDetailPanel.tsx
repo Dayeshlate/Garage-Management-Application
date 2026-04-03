@@ -37,6 +37,25 @@ const statusConfig: Record<PaymentStatus, { label: string; icon: React.ElementTy
   unfilled: { label: 'Unfilled', icon: Clock, className: 'text-status-pending bg-status-pending/10' },
 };
 
+const toSafeNumber = (value: unknown): number => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+};
+
+const toSafeDateInput = (value: unknown): string => {
+  if (typeof value === 'string') {
+    return value.slice(0, 10);
+  }
+  return '';
+};
+
+const toSafeStatus = (value: unknown): PaymentStatus => {
+  if (value === 'paid' || value === 'pending' || value === 'overdue' || value === 'cancelled' || value === 'unfilled') {
+    return value;
+  }
+  return 'pending';
+};
+
 export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
   invoice,
   open,
@@ -44,19 +63,19 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
   onUpdate,
 }) => {
   const { formatCurrency, currencySymbol } = useSettings();
-  const [editingAmount, setEditingAmount] = useState(invoice.amount);
-  const [editingTax, setEditingTax] = useState(invoice.tax);
-  const [editingStatus, setEditingStatus] = useState(invoice.status);
-  const [editingDueDate, setEditingDueDate] = useState(invoice.dueDate);
+  const [editingAmount, setEditingAmount] = useState(toSafeNumber(invoice.amount));
+  const [editingTax, setEditingTax] = useState(toSafeNumber(invoice.tax));
+  const [editingStatus, setEditingStatus] = useState<PaymentStatus>(toSafeStatus(invoice.status));
+  const [editingDueDate, setEditingDueDate] = useState(toSafeDateInput(invoice.dueDate));
 
   const tax = editingAmount * (editingTax > 0 && editingTax < 1 ? editingTax : editingTax / 100);
   const total = editingAmount + tax;
 
   useEffect(() => {
-    setEditingAmount(invoice.amount);
-    setEditingTax(invoice.tax);
-    setEditingStatus(invoice.status);
-    setEditingDueDate(invoice.dueDate);
+    setEditingAmount(toSafeNumber(invoice.amount));
+    setEditingTax(toSafeNumber(invoice.tax));
+    setEditingStatus(toSafeStatus(invoice.status));
+    setEditingDueDate(toSafeDateInput(invoice.dueDate));
   }, [invoice]);
 
   const handleAmountChange = () => {
@@ -87,6 +106,8 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
     const updates: Partial<Invoice> = { status: newStatus };
     if (newStatus === 'paid') {
       updates.paidAt = new Date().toISOString().split('T')[0];
+    } else {
+      updates.paidAt = undefined;
     }
     onUpdate(invoice.id, updates);
     toast({
@@ -100,6 +121,25 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
     toast({
       title: 'Due date updated',
       description: `Due date changed to ${new Date(editingDueDate).toLocaleDateString()}`,
+    });
+  };
+
+  const handleSaveChanges = () => {
+    const updates: Partial<Invoice> = {
+      dueDate: editingDueDate,
+      status: editingStatus,
+    };
+
+    if (editingStatus === 'paid') {
+      updates.paidAt = invoice.paidAt ?? new Date().toISOString().split('T')[0];
+    } else {
+      updates.paidAt = undefined;
+    }
+
+    onUpdate(invoice.id, updates);
+    toast({
+      title: 'Invoice saved',
+      description: 'Your invoice changes have been saved.',
     });
   };
 
@@ -183,7 +223,7 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
                 <label className="text-sm font-medium text-foreground">Customer</label>
                 <input
                   type="text"
-                  value={invoice.customer}
+                  value={invoice.customer ?? ''}
                   disabled
                   className="input-field bg-muted text-muted-foreground"
                 />
@@ -192,7 +232,7 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
                 <label className="text-sm font-medium text-foreground">Job Card</label>
                 <input
                   type="text"
-                  value={invoice.jobCard}
+                  value={invoice.jobCard ?? ''}
                   disabled
                   className="input-field bg-muted text-muted-foreground"
                 />
@@ -214,7 +254,7 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
               <label className="text-sm font-medium text-foreground">Created</label>
               <input
                 type="text"
-                value={new Date(invoice.createdAt).toLocaleDateString()}
+                value={invoice.createdAt ? new Date(invoice.createdAt).toLocaleDateString() : ''}
                 disabled
                 className="input-field bg-muted text-muted-foreground"
               />
@@ -279,8 +319,8 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-2">
-            <Button className="flex-1" variant="outline">
-              Download Invoice
+            <Button className="flex-1" variant="outline" onClick={handleSaveChanges}>
+              Save Changes
             </Button>
             <Button className="flex-1">
               Send Email

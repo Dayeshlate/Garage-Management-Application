@@ -10,7 +10,6 @@ interface Vehicle {
   model: string;
   year: number;
   licensePlate: string;
-  vin: string;
   color: string;
   owner: string;
   ownerEmail?: string;
@@ -178,16 +177,6 @@ export const VehicleDetailPanel: React.FC<VehicleDetailPanelProps> = ({
                 value={vehicle.licensePlate}
                 disabled
                 className="input-field bg-muted text-muted-foreground"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">VIN</label>
-              <input
-                type="text"
-                value={vehicle.vin}
-                disabled
-                className="input-field bg-muted text-muted-foreground font-mono text-xs"
               />
             </div>
           </div>

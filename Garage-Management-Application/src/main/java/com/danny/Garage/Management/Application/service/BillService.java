@@ -3,6 +3,7 @@ package com.danny.Garage.Management.Application.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -87,6 +88,27 @@ public class BillService {
     public List<BillDTO> getAllBill() {
         List<BillDTO> allBillDTOs = billRepository.findAll().stream().map(this::toDTO).toList();
         return allBillDTOs;
+    }
+
+    @Transactional
+    public BillDTO updateBillStatus(Long billId, String rawStatus) {
+        Bill bill = billRepository.findById(billId)
+                .orElseThrow(() -> new RuntimeException("Bill not found"));
+
+        if (rawStatus == null || rawStatus.isBlank()) {
+            throw new RuntimeException("Bill status is required");
+        }
+
+        BillStatus status;
+        try {
+            status = BillStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("Unsupported bill status: " + rawStatus);
+        }
+
+        bill.setBillStatus(status);
+        Bill saved = billRepository.save(bill);
+        return toDTO(saved);
     }
 
     public List<BillDTO> getAllBillForUser() {

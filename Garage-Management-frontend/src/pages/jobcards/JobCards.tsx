@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Search, Filter, Clock, DollarSign, Eye } from 'lucide-react';
+import { Search, Filter, Clock, DollarSign } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import { StatusBadge, StatusType } from '@/components/StatusBadge';
 import { JobCardDetailPanel, type JobCardDetail } from '@/components/JobCardDetailPanel';
@@ -128,7 +128,10 @@ export const JobCards: React.FC = () => {
 
   const jobCards: JobCard[] = useMemo(
     () =>
-      (data ?? []).map((job) => {
+      (data ?? [])
+      .slice()
+      .sort((a, b) => Number(b.id) - Number(a.id))
+      .map((job) => {
         const constPartIds = (job.sparePart_id ?? job.SparePart_id ?? []).map((id) => Number(id));
         const constPartNames = job.sparePartNames ?? constPartIds.map((id) => inventoryById[id]?.name ?? `Part #${id}`);
         const constParts = constPartIds.map((id) => ({
@@ -230,19 +233,6 @@ export const JobCards: React.FC = () => {
     </div>
     ),
   },
-  {
-    key: 'actions',
-    header: '',
-    render: (job: JobCard) => (
-    <button
-      onClick={() => setSelectedJob(job)}
-      className="p-2 hover:bg-muted rounded-lg transition-colors"
-      title="View Details"
-    >
-      <Eye className="h-4 w-4 text-muted-foreground" />
-    </button>
-    ),
-  },
   ];
 
   return (
@@ -295,6 +285,7 @@ export const JobCards: React.FC = () => {
         columns={columns}
         data={filteredJobCards}
         emptyMessage="No job cards found"
+        onRowClick={setSelectedJob}
       />
 
       {selectedJob && (

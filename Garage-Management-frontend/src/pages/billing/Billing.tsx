@@ -1,15 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Search, MoreVertical, Receipt, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Search, Receipt, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import { BillDetailPanel } from '@/components/BillDetailPanel';
 import { useSettings } from '@/context/SettingsContext';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useInvoices } from '@/hooks/use-api';
+import { useInvoices, useUpdateInvoice } from '@/hooks/use-api';
 
 type PaymentStatus = 'paid' | 'pending' | 'overdue' | 'cancelled';
 
@@ -34,10 +28,25 @@ const statusConfig: Record<PaymentStatus, { label: string; icon: React.ElementTy
   cancelled: { label: 'Cancelled', icon: XCircle, className: 'text-muted-foreground bg-muted' },
 };
 
-const mapStatus = (status?: string): PaymentStatus => {
-  if (status === 'PAID') return 'paid';
-  if (status === 'FINALIZED' || status === 'PENDING_LABOUR') return 'pending';
+const normalizeStatus = (status?: string): PaymentStatus => {
+  const normalized = String(status ?? '').trim().toUpperCase();
+
+  if (normalized === 'PAID' || normalized === 'PADE') return 'paid';
+  if (normalized === 'OVERDUE') return 'overdue';
+  if (normalized === 'CANCELLED') return 'cancelled';
+  if (normalized === 'FINALIZED' || normalized === 'PENDING_MECHANIC' || normalized === 'PENDING_LABOUR') {
+    return 'pending';
+  }
+
+  if (normalized.includes('PAID')) return 'paid';
+  if (normalized.includes('PENDING') || normalized.includes('FINAL')) return 'pending';
+
   return 'pending';
+};
+
+const toNumber = (value: unknown): number => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
 };
 
 export const Billing: React.FC = () => {
@@ -45,30 +54,75 @@ export const Billing: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<PaymentStatus | 'all'>('all');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [invoiceEdits, setInvoiceEdits] = useState<Record<string, Partial<Invoice>>>({});
 
   const { data, isLoading, error } = useInvoices();
+  const updateInvoice = useUpdateInvoice();
 
   const invoices: Invoice[] = useMemo(
     () =>
-      (data ?? []).map((invoice) => ({
-        id: String(invoice.id),
-        invoiceNumber: `INV-${invoice.id}`,
-        customer: `Customer #${invoice.jobCard_id}`,
-        jobCard: `JC-${invoice.jobCard_id}`,
-        amount: (invoice.labourAmount ?? 0) + (invoice.sparePartAmount ?? 0),
-        tax: 0,
-        total: invoice.totalBill ?? 0,
-        status: mapStatus(invoice.billStatus),
-        dueDate: invoice.billDate,
-        createdAt: invoice.billDate,
-        paidAt: invoice.billStatus === 'PAID' ? invoice.billDate : undefined,
-      })),
-    [data]
+      (data ?? [])
+      .slice()
+      .sort((a, b) => Number(b.id) - Number(a.id))
+      .map((invoice) => {
+        const id = String(invoice.id);
+        const baseInvoice: Invoice = {
+          id,
+          invoiceNumber: `INV-${invoice.id}`,
+          customer: `Customer #${invoice.jobCard_id}`,
+          jobCard: `JC-${invoice.jobCard_id}`,
+          amount: toNumber(invoice.mechanicAmount) + toNumber(invoice.sparePartAmount),
+          tax: 0,
+          total: toNumber(invoice.totalBill),
+          status: normalizeStatus(invoice.billStatus),
+          dueDate: invoice.billDate,
+          createdAt: invoice.billDate,
+          paidAt: invoice.billStatus === 'PAID' ? invoice.billDate : undefined,
+        };
+
+        return {
+          ...baseInvoice,
+          ...(invoiceEdits[id] ?? {}),
+        };
+      }),
+    [data, invoiceEdits]
   );
 
   const handleUpdateInvoice = (id: string, updates: Partial<Invoice>) => {
+    const normalizedUpdates: Partial<Invoice> = {
+      ...updates,
+      status: updates.status ? normalizeStatus(updates.status) : updates.status,
+      amount: updates.amount !== undefined ? toNumber(updates.amount) : updates.amount,
+      tax: updates.tax !== undefined ? toNumber(updates.tax) : updates.tax,
+      total: updates.total !== undefined ? toNumber(updates.total) : updates.total,
+    };
+
+    setInvoiceEdits((prev) => ({
+      ...prev,
+      [id]: {
+        ...(prev[id] ?? {}),
+        ...normalizedUpdates,
+      },
+    }));
+
     if (selectedInvoice?.id === id) {
-      setSelectedInvoice((prev) => (prev ? { ...prev, ...updates } : prev));
+      setSelectedInvoice((prev) => (prev ? { ...prev, ...normalizedUpdates } : prev));
+    }
+
+    if (normalizedUpdates.status) {
+      const billStatus = normalizedUpdates.status === 'paid' ? 'PAID' : 'FINALIZED';
+      updateInvoice.mutate(
+        { id: Number(id), data: { billStatus } },
+        {
+          onSuccess: () => {
+            setInvoiceEdits((prev) => {
+              const next = { ...prev };
+              delete next[id];
+              return next;
+            });
+          },
+        }
+      );
     }
   };
 
@@ -138,20 +192,6 @@ export const Billing: React.FC = () => {
         <span className="text-muted-foreground">
           {new Date(invoice.dueDate).toLocaleDateString()}
         </span>
-      ),
-    },
-    {
-      key: 'actions',
-      header: '',
-      render: (invoice: Invoice) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="p-2 hover:bg-muted rounded-lg transition-colors" onClick={(e) => e.stopPropagation()}>
-            <MoreVertical className="h-4 w-4 text-muted-foreground" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setSelectedInvoice(invoice)}>View Invoice</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       ),
     },
   ];

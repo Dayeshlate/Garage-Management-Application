@@ -11,7 +11,6 @@ interface UserVehicle {
   model: string;
   year: number;
   licensePlate: string;
-  vin: string;
   color: string;
   owner: string;
   lastService: string;
@@ -38,13 +37,15 @@ export const MyVehicles: React.FC = () => {
 
   const vehicles: UserVehicle[] = useMemo(
     () =>
-      (data ?? []).map((vehicle) => ({
+      (data ?? [])
+      .slice()
+      .sort((a, b) => Number(b.id) - Number(a.id))
+      .map((vehicle) => ({
         id: String(vehicle.id),
         make: vehicle.brand ?? 'Unknown',
         model: vehicle.model ?? 'Unknown',
         year: Number(String(vehicle.model ?? '').match(/\d{4}/)?.[0]) || new Date().getFullYear(),
         licensePlate: vehicle.vehicleNumber ?? '-',
-        vin: vehicle.vehicleType ?? '-',
         color: 'Unknown',
         owner: vehicle.ownerName ?? vehicle.userEmail ?? 'Unknown',
         lastService: vehicle.deliveryTime ?? '',
@@ -160,15 +161,6 @@ export const MyVehicles: React.FC = () => {
                 <div>
                   <p className="text-xs text-muted-foreground">Color</p>
                   <p className="text-sm font-medium text-foreground">{vehicle.color}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
-                  <Car className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">VIN</p>
-                  <p className="text-sm font-medium text-foreground truncate max-w-[120px]">{vehicle.vin}</p>
                 </div>
               </div>
               {vehicle.status === 'approved' && (

@@ -17,8 +17,14 @@ export interface InvoiceDTO {
 }
 
 export type CreateInvoiceDto = Omit<InvoiceDTO, 'id'>;
+type UpdateInvoiceDto = Partial<InvoiceDTO> & { status?: string };
 
 const unsupported = (message: string) => Promise.reject(new ApiError(405, message));
+
+const isDemoSession = (): boolean => {
+  const token = localStorage.getItem('token');
+  return token === 'demo-token';
+};
 
 const getStoredUserRole = (): string | undefined => {
   const storedUser = localStorage.getItem('garage_user');
@@ -28,7 +34,7 @@ const getStoredUserRole = (): string | undefined => {
 
   try {
     const parsed = JSON.parse(storedUser) as { role?: string };
-    return parsed.role;
+    return String(parsed.role ?? '').replace(/^ROLE_/i, '').toUpperCase();
   } catch {
     return undefined;
   }
@@ -36,6 +42,9 @@ const getStoredUserRole = (): string | undefined => {
 
 export const billingApi = {
   getAll: (): Promise<InvoiceDTO[]> => {
+    if (isDemoSession()) {
+      return Promise.resolve([]);
+    }
     const role = getStoredUserRole();
     const endpoint = role === 'ADMIN' ? '/admin/bill/getAllBills' : '/user/bill/getAll';
     return apiClient.get(endpoint);
@@ -48,6 +57,19 @@ export const billingApi = {
     return bills[0];
   },
   create: (): Promise<InvoiceDTO> => unsupported('Create invoice endpoint is not available in backend yet'),
-  update: (): Promise<InvoiceDTO> => unsupported('Update invoice endpoint is not available in backend yet'),
+  update: (id: number, data: UpdateInvoiceDto): Promise<InvoiceDTO> => {
+    const normalizedStatus = String(data.billStatus ?? data.status ?? '').trim().toUpperCase();
+
+    let billStatus: InvoiceStatus;
+    if (normalizedStatus === 'PAID') {
+      billStatus = 'PAID';
+    } else if (normalizedStatus === 'PENDING' || normalizedStatus === 'FINALIZED' || normalizedStatus === 'PENDING_MECHANIC') {
+      billStatus = 'FINALIZED';
+    } else {
+      return unsupported('Only pending/paid status updates are supported by backend');
+    }
+
+    return apiClient.put(`/admin/bill/${id}/status`, { billStatus });
+  },
   delete: (): Promise<void> => unsupported('Delete invoice endpoint is not available in backend yet'),
 };

@@ -36,7 +36,10 @@ export const Login = React.forwardRef<HTMLDivElement>((_, ref) => {
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          role = parsed?.role ?? 'USER';
+          const normalizedRole = String(parsed?.role ?? 'USER')
+            .replace(/^ROLE_/i, '')
+            .toUpperCase();
+          role = normalizedRole === 'ADMIN' ? 'ADMIN' : normalizedRole === 'MECHANIC' ? 'MECHANIC' : 'USER';
         } catch {
           role = 'USER';
         }

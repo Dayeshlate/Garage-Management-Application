@@ -37,18 +37,9 @@ apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
     const status = error.response?.status;
-    const requestUrl = String(error.config?.url || '');
     // Clear session only on unauthorized responses.
     // 403 can happen on role-protected routes and should not force logout.
     if (status === 401) {
-      localStorage.removeItem('garage_user');
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-
-    // If user endpoints return 403, session token is usually stale/invalid.
-    // Reset auth state to prevent repeated forbidden loops.
-    if (status === 403 && requestUrl.startsWith('/user/')) {
       localStorage.removeItem('garage_user');
       localStorage.removeItem('token');
       window.location.href = '/login';

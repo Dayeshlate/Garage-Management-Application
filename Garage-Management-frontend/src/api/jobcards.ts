@@ -25,6 +25,11 @@ export type CreateJobCardDto = Omit<JobCardDTO, 'id'>;
 
 const unsupported = (message: string) => Promise.reject(new ApiError(405, message));
 
+const isDemoSession = (): boolean => {
+  const token = localStorage.getItem('token');
+  return token === 'demo-token';
+};
+
 const normalizeJobCard = (raw: any): JobCardDTO => ({
   id: Number(raw?.id),
   jobStatus: raw?.jobStatus ?? raw?.JobStatus,
@@ -49,10 +54,18 @@ export const jobCardsApi = {
     return (data ?? []).map(normalizeJobCard);
   },
   getUserActive: async (): Promise<JobCardDTO[]> => {
+    if (isDemoSession()) {
+      return [];
+    }
     const data = await apiClient.get('/user/jobCard/Active_Services');
     return (data ?? []).map(normalizeJobCard);
   },
-  getUserActiveCount: (): Promise<number> => apiClient.get('/user/jobCard/Active_count'),
+  getUserActiveCount: (): Promise<number> => {
+    if (isDemoSession()) {
+      return Promise.resolve(0);
+    }
+    return apiClient.get('/user/jobCard/Active_count');
+  },
   getById: async (id: number): Promise<JobCardDTO> => {
     const cards = await jobCardsApi.getAll();
     const card = cards.find((c) => c.id === id);

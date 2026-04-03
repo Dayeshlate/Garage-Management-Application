@@ -86,6 +86,14 @@ public class AdminController {
         billService.updateMechanicAmount(dto);
     }
 
+    @PutMapping("/bill/{billId}/status")
+    public ResponseEntity<BillDTO> updateBillStatus(@PathVariable Long billId,
+            @RequestBody Map<String, String> request) {
+        String billStatus = request.get("billStatus");
+        BillDTO updatedBill = billService.updateBillStatus(billId, billStatus);
+        return ResponseEntity.ok(updatedBill);
+    }
+
     // ================================== JobCard=======================================================
 
     @GetMapping("/getActiveJobCardCountwithinDays")

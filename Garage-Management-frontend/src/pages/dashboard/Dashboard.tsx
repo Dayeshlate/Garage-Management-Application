@@ -30,7 +30,9 @@ export const Dashboard: React.FC = () => {
   const { data: inventory = [] } = useInventory();
 
   const activeJobs = jobCards.filter((job) => (job.jobStatus ?? job.JobStatus) !== 'DELIVERED');
-  const revenueMtd = invoices.reduce((sum, bill) => sum + (bill.totalBill ?? 0), 0);
+  const revenueMtd = invoices
+    .filter((bill) => bill.billStatus === 'PAID')
+    .reduce((sum, bill) => sum + (bill.totalBill ?? 0), 0);
 
   const recentJobs = useMemo(
     () =>

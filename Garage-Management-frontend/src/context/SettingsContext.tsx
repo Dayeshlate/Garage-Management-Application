@@ -32,7 +32,7 @@ interface SettingsContextType {
   setCurrency: (currency: Currency) => void;
   taxRate: number;
   setTaxRate: (rate: number) => void;
-  formatCurrency: (amount: number) => string;
+  formatCurrency: (amount: number | null | undefined) => string;
   currencySymbol: string;
   initializeFromUser: (userCurrency?: string, userTaxRate?: number) => void;
 }
@@ -96,9 +96,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    const config = currencyMap[currency];
-    return `${config.symbol}${amount.toLocaleString()}`;
+  const formatCurrency = (amount: number | null | undefined) => {
+    const config = currencyMap[currency] ?? currencyMap[DEFAULT_CURRENCY];
+    const numericAmount = Number.isFinite(Number(amount)) ? Number(amount) : 0;
+    return `${config.symbol}${numericAmount.toLocaleString()}`;
   };
 
   const currencySymbol = currencyMap[currency].symbol;

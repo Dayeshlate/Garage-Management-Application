@@ -51,7 +51,7 @@ const AppRoutes = () => {
         <Route path="/inventory" element={<RoleGuard allowedRoles={['ADMIN']}><Inventory /></RoleGuard>} />
         <Route path="/billing" element={<RoleGuard allowedRoles={['ADMIN']}><Billing /></RoleGuard>} />
         <Route path="/reports" element={<RoleGuard allowedRoles={['ADMIN']}><Reports /></RoleGuard>} />
-        <Route path="/settings" element={<RoleGuard allowedRoles={['ADMIN', 'USER']}><Settings /></RoleGuard>} />
+        <Route path="/settings" element={<RoleGuard allowedRoles={['ADMIN']}><Settings /></RoleGuard>} />
 
         {/* User Routes */}
         <Route path="/my-dashboard" element={<RoleGuard allowedRoles={['USER']}><UserDashboard /></RoleGuard>} />

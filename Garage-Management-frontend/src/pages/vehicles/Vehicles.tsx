@@ -1,16 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Plus, Search, Car, Calendar, MoreVertical, Eye, Clock } from 'lucide-react';
+import { Plus, Search, Car, Calendar, Clock } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import { AddVehicleDialog } from '@/components/AddVehicleDialog';
 import { VehicleDetailPanel } from '@/components/VehicleDetailPanel';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useCreateVehicle, usePendingVehicles, useVehicles } from '@/hooks/use-api';
 import type { CreateVehicleDto } from '@/api/vehicles';
 import { vehiclesApi } from '@/api/vehicles';
@@ -21,7 +15,6 @@ interface Vehicle {
   model: string;
   year: number;
   licensePlate: string;
-  vin: string;
   color: string;
   owner: string;
   ownerEmail?: string;
@@ -54,7 +47,6 @@ export const Vehicles: React.FC = () => {
       model: modelText || 'Unknown',
       year,
       licensePlate: vehicle?.vehicleNumber ?? '-',
-      vin: vehicle?.vehicleType ?? '-',
       color: 'Unknown',
       owner: vehicle?.ownerName ?? vehicle?.userEmail ?? 'Unknown',
       ownerEmail: vehicle?.ownerEmail ?? vehicle?.userEmail,
@@ -66,8 +58,18 @@ export const Vehicles: React.FC = () => {
     };
   };
 
-  const vehicles = useMemo(() => (allVehiclesData ?? []).map(mapVehicle).filter((v) => v.status !== 'pending'), [allVehiclesData]);
-  const pendingVehicles = useMemo(() => (pendingVehiclesData ?? []).map(mapVehicle), [pendingVehiclesData]);
+  const vehicles = useMemo(
+    () =>
+      (allVehiclesData ?? [])
+        .map(mapVehicle)
+        .filter((v) => v.status !== 'pending')
+        .sort((a, b) => Number(b.id) - Number(a.id)),
+    [allVehiclesData]
+  );
+  const pendingVehicles = useMemo(
+    () => (pendingVehiclesData ?? []).map(mapVehicle).sort((a, b) => Number(b.id) - Number(a.id)),
+    [pendingVehiclesData]
+  );
 
   const handleAddVehicle = async (vehicle: CreateVehicleDto) => {
     try {
@@ -176,20 +178,6 @@ export const Vehicles: React.FC = () => {
       header: 'Total Services',
       render: (vehicle: Vehicle) => <span className="font-medium text-foreground">{vehicle.totalServices}</span>,
     },
-    {
-      key: 'actions',
-      header: '',
-      render: (vehicle: Vehicle) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="p-2 hover:bg-muted rounded-lg transition-colors">
-            <MoreVertical className="h-4 w-4 text-muted-foreground" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setViewVehicle(vehicle)}>View Details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
   ];
 
   const pendingColumns = [
@@ -237,19 +225,6 @@ export const Vehicles: React.FC = () => {
           <Clock className="h-4 w-4" />
           {vehicle.submittedAt ? new Date(vehicle.submittedAt).toLocaleDateString() : 'N/A'}
         </div>
-      ),
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (vehicle: Vehicle) => (
-        <button
-          onClick={() => setViewVehicle(vehicle)}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
-          title="View Details"
-        >
-          <Eye className="h-4 w-4 text-muted-foreground" />
-        </button>
       ),
     },
   ];
@@ -320,11 +295,21 @@ export const Vehicles: React.FC = () => {
         </TabsList>
 
         <TabsContent value="approved">
-          <DataTable columns={approvedColumns} data={filteredVehicles} emptyMessage="No approved vehicles found" />
+          <DataTable
+            columns={approvedColumns}
+            data={filteredVehicles}
+            emptyMessage="No approved vehicles found"
+            onRowClick={setViewVehicle}
+          />
         </TabsContent>
 
         <TabsContent value="pending">
-          <DataTable columns={pendingColumns} data={filteredPending} emptyMessage="No pending vehicles to review" />
+          <DataTable
+            columns={pendingColumns}
+            data={filteredPending}
+            emptyMessage="No pending vehicles to review"
+            onRowClick={setViewVehicle}
+          />
         </TabsContent>
       </Tabs>
 

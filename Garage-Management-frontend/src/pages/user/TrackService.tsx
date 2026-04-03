@@ -44,7 +44,10 @@ export const TrackService: React.FC = () => {
   const { formatCurrency } = useSettings();
   const { data, isLoading, error } = useUserJobCards();
 
-  const myServices = (data ?? []).map((job) => {
+  const myServices = (data ?? [])
+  .slice()
+  .sort((a, b) => Number(b.id) - Number(a.id))
+  .map((job) => {
     const constSparePartNames = job.sparePartNames ?? [];
     const constSparePartCount = (job.sparePart_id ?? job.SparePart_id)?.length ?? 0;
 

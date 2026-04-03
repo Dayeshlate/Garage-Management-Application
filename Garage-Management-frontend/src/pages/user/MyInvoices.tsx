@@ -15,7 +15,10 @@ export const MyInvoices: React.FC = () => {
 
   const invoices = useMemo(
     () =>
-      (data ?? []).map((invoice) => ({
+      (data ?? [])
+      .slice()
+      .sort((a, b) => Number(b.id) - Number(a.id))
+      .map((invoice) => ({
         id: `INV-${invoice.id}`,
         date: invoice.billDate,
         vehicle: `Vehicle #${invoice.jobCard_id}`,
