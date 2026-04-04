@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/admin")
-@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private VehicleService vehicleService;
@@ -109,24 +108,28 @@ public class AdminController {
     }
 
     @PostMapping("/jobcard/update")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC')")
     public ResponseEntity<JobCardDTO> updateJobCard(@RequestBody JobCardDTO dto) {
         JobCardDTO jobCardDTO = jobCardService.updateJobCard(dto);
         return ResponseEntity.ok(jobCardDTO);
     }
 
     @GetMapping("/jobcard/Active_count")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC')")
     public ResponseEntity<Long> getAllActiveServiceCount() {
         Long count = jobCardService.getAllJobCardsCount();
         return ResponseEntity.ok(count);
     }
 
     @GetMapping("/jobcard/getByStatus")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC')")
     public ResponseEntity<List<JobCardDTO>> getJobCardByStatus(@RequestParam JobStatus jobStatus) {
         List<JobCardDTO> jobcards = jobCardService.getAllByStatus(jobStatus);
         return ResponseEntity.ok(jobcards);
     }
 
     @GetMapping("/jobcard/getAllJobCards")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC')")
     public ResponseEntity<List<JobCardDTO>> getAllJobcards() {
         List<JobCardDTO> allJobCardDTOs = jobCardService.getAllJobCards();
         return ResponseEntity.ok(allJobCardDTOs);

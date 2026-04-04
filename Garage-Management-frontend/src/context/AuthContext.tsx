@@ -130,28 +130,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('garage_user');
       localStorage.removeItem('token');
 
-      const demoUser = getDemoUser(email, password);
-      if (demoUser) {
-        setUser(demoUser);
-        initializeFromUser(demoUser.currency, demoUser.taxRate);
-        localStorage.setItem('garage_user', JSON.stringify({ ...demoUser, token: 'demo-token' }));
-        localStorage.setItem('token', 'demo-token');
+      try {
+        const response = await authApi.login({ email, password });
+        if (!response?.token) {
+          setUser(null);
+          localStorage.removeItem('garage_user');
+          localStorage.removeItem('token');
+          return false;
+        }
+        const userData: User = buildUserFromUnknown(response.user);
+        setUser(userData);
+        initializeFromUser(userData.currency, userData.taxRate);
+        localStorage.setItem('garage_user', JSON.stringify({ ...userData, token: response.token }));
+        localStorage.setItem('token', response.token);
         return true;
+      } catch (error) {
+        const demoUser = getDemoUser(email, password);
+        if (error instanceof ApiError && error.status === 0 && demoUser) {
+          setUser(demoUser);
+          initializeFromUser(demoUser.currency, demoUser.taxRate);
+          localStorage.setItem('garage_user', JSON.stringify({ ...demoUser, token: 'demo-token' }));
+          localStorage.setItem('token', 'demo-token');
+          return true;
+        }
+        throw error;
       }
-
-      const response = await authApi.login({ email, password });
-      if (!response?.token) {
-        setUser(null);
-        localStorage.removeItem('garage_user');
-        localStorage.removeItem('token');
-        return false;
-      }
-      const userData: User = buildUserFromUnknown(response.user);
-      setUser(userData);
-      initializeFromUser(userData.currency, userData.taxRate);
-      localStorage.setItem('garage_user', JSON.stringify({ ...userData, token: response.token }));
-      localStorage.setItem('token', response.token);
-      return true;
     } catch (error) {
       setUser(null);
       localStorage.removeItem('garage_user');

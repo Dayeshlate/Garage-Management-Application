@@ -50,6 +50,9 @@ const normalizeJobCard = (raw: any): JobCardDTO => ({
 
 export const jobCardsApi = {
   getAll: async (): Promise<JobCardDTO[]> => {
+    if (isDemoSession()) {
+      return [];
+    }
     const data = await apiClient.get('/admin/jobcard/getAllJobCards');
     return (data ?? []).map(normalizeJobCard);
   },
@@ -76,6 +79,9 @@ export const jobCardsApi = {
   },
   create: (): Promise<JobCardDTO> => unsupported('Create job card endpoint is not available in backend yet'),
   update: async (id: number, data: Partial<JobCardDTO>): Promise<JobCardDTO> => {
+    if (isDemoSession()) {
+      return unsupported('Update job card is not available in demo mode');
+    }
     const nextStatus = data.jobStatus ?? data.JobStatus;
     const nextSparePartIds = data.sparePart_id ?? data.SparePart_id;
     const updated = await apiClient.post('/admin/jobcard/update', {

@@ -14,8 +14,18 @@ export type CreateInventaryDto = Omit<InventaryDTO, 'id'>;
 
 const unsupported = (message: string) => Promise.reject(new ApiError(405, message));
 
+const isDemoSession = (): boolean => {
+  const token = localStorage.getItem('token');
+  return token === 'demo-token';
+};
+
 export const inventoryApi = {
-  getAll: (): Promise<InventaryDTO[]> => apiClient.get('/admin/SparePart/getAll'),
+  getAll: (): Promise<InventaryDTO[]> => {
+    if (isDemoSession()) {
+      return Promise.resolve([]);
+    }
+    return apiClient.get('/admin/SparePart/getAll');
+  },
   getById: (id: number): Promise<InventaryDTO> => apiClient.get(`/admin/SparePart/get/${id}`),
   create: (data: CreateInventaryDto): Promise<InventaryDTO> => apiClient.post('/admin/SparePart/create', data),
   update: (): Promise<InventaryDTO> => unsupported('Update inventory endpoint is not available in backend yet'),

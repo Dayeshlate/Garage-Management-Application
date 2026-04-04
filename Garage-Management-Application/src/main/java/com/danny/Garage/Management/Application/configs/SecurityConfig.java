@@ -48,6 +48,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/user/**").authenticated()
+                    .requestMatchers("/admin/jobcard/**").hasAnyRole("ADMIN", "MECHANIC")
+                    .requestMatchers(HttpMethod.GET, "/admin/SparePart/getAll").hasAnyRole("ADMIN", "MECHANIC")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
