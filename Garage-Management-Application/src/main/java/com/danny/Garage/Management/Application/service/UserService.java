@@ -38,7 +38,7 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
 
-    @Value("${email.url}")
+    @Value("${frontend_url}")
     private String activationUrl;
 
     public UserService(
