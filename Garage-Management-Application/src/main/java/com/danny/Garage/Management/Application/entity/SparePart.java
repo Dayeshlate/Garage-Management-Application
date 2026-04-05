@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -22,10 +23,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class SparePart {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     private String partName;
@@ -37,5 +40,6 @@ public class SparePart {
     private String manufacture;
 
     @ManyToMany(mappedBy = "spareParts", fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<JobCard> jobCards = new HashSet<>();
 }

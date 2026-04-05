@@ -174,6 +174,16 @@ public class BillService {
             discountAmount = subtotal.multiply(discount);
         }
 
+        String customerName = null;
+        if (entity.getJobCard() != null && entity.getJobCard().getVehicle() != null) {
+            var vehicle = entity.getJobCard().getVehicle();
+            if (vehicle.getUser() != null && vehicle.getUser().getName() != null && !vehicle.getUser().getName().isBlank()) {
+                customerName = vehicle.getUser().getName();
+            } else {
+                customerName = vehicle.getOwnerName();
+            }
+        }
+
         return BillDTO.builder()
                 .id(entity.getId())
                 .billDate(entity.getBillDate())
@@ -186,6 +196,7 @@ public class BillService {
             .taxAmount(taxAmount)
             .discountAmount(discountAmount)
                 .currency(entity.getCurrency())
+                .customerName(customerName)
                 .jobCard_id(entity.getJobCard() != null
                         ? entity.getJobCard().getId()
                         : null)

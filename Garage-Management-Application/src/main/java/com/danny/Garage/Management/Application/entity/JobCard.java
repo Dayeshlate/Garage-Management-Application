@@ -25,6 +25,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -33,10 +34,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class JobCard {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Enumerated(EnumType.STRING)
@@ -59,6 +62,7 @@ public class JobCard {
 
     @ManyToMany(fetch = FetchType.LAZY,cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "jobcard_sparepart",joinColumns = @JoinColumn(name = "jobcard_id"),inverseJoinColumns = @JoinColumn(name = "sparepart_id"))
+    @Builder.Default
     private Set<SparePart> spareParts = new HashSet<>();
 
     @PrePersist

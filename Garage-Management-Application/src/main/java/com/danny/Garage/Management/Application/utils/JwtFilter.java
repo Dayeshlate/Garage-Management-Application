@@ -41,7 +41,11 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-            username = jwtUtils.extractUsername(jwt);
+            try {
+                username = jwtUtils.extractUsername(jwt);
+            } catch (Exception ignored) {
+                username = null;
+            }
         }
 
         if (username != null &&
@@ -50,7 +54,7 @@ public class JwtFilter extends OncePerRequestFilter {
             UserDetails userDetails =
                     userDetailsService.loadUserByUsername(username);
 
-            if (jwtUtils.validateToken(jwt, userDetails)) {
+            if (jwt != null && jwtUtils.validateToken(jwt, userDetails)) {
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(

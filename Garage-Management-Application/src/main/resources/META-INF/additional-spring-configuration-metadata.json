@@ -1,0 +1,54 @@
+{
+  "properties": [
+    {
+      "name": "jwt.secret",
+      "type": "java.lang.String",
+      "description": "Secret key used to sign and validate JWT tokens."
+    },
+    {
+      "name": "jwt.token-validity-ms",
+      "type": "java.lang.Long",
+      "description": "JWT expiration time in milliseconds."
+    },
+    {
+      "name": "billing.tax",
+      "type": "java.math.BigDecimal",
+      "description": "Default tax rate for billing calculations."
+    },
+    {
+      "name": "billing.discount",
+      "type": "java.math.BigDecimal",
+      "description": "Default discount rate for billing calculations."
+    },
+    {
+      "name": "email.url",
+      "type": "java.lang.String",
+      "description": "Public base URL used in account activation email links."
+    },
+    {
+      "name": "bootstrap.admin.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to auto-create a default admin user when no admin exists."
+    },
+    {
+      "name": "bootstrap.admin.name",
+      "type": "java.lang.String",
+      "description": "Display name for the auto-created admin account."
+    },
+    {
+      "name": "bootstrap.admin.email",
+      "type": "java.lang.String",
+      "description": "Email for the auto-created admin account."
+    },
+    {
+      "name": "bootstrap.admin.password",
+      "type": "java.lang.String",
+      "description": "Password for the auto-created admin account."
+    },
+    {
+      "name": "bootstrap.admin.phone",
+      "type": "java.lang.String",
+      "description": "Phone number for the auto-created admin account."
+    }
+  ]
+}

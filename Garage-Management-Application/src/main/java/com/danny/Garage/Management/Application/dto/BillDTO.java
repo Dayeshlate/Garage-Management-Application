@@ -39,4 +39,6 @@ public class BillDTO {
 
     private String currency;
 
+    private String customerName;
+
 }
