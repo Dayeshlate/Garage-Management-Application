@@ -11,6 +11,9 @@ const apiClient = axios.create({
 
 // Attach auth token to every request
 apiClient.interceptors.request.use((config) => {
+  const requestUrl = String(config.url || '');
+  const isAuthEndpoint = requestUrl.startsWith('/api/auth/');
+
   let token: string | undefined;
   const user = localStorage.getItem('garage_user');
   if (user) {
@@ -26,7 +29,7 @@ apiClient.interceptors.request.use((config) => {
     token = localStorage.getItem('token') || undefined;
   }
 
-  if (token && token !== 'demo-token') {
+  if (!isAuthEndpoint && token && token !== 'demo-token') {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;

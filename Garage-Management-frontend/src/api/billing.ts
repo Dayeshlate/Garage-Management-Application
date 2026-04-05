@@ -7,6 +7,7 @@ export type InvoiceStatus = 'PENDING_MECHANIC' | 'FINALIZED' | 'PAID';
 export interface InvoiceDTO {
   id: number;
   billDate: string;
+  customerName?: string;
   mechanicAmount: number;
   sparePartAmount: number;
   subtotal?: number;

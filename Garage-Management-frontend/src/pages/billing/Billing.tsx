@@ -69,7 +69,7 @@ export const Billing: React.FC = () => {
         const baseInvoice: Invoice = {
           id,
           invoiceNumber: `INV-${invoice.id}`,
-          customer: `Customer #${invoice.jobCard_id}`,
+          customer: invoice.customerName?.trim() || `Customer #${invoice.jobCard_id}`,
           jobCard: `JC-${invoice.jobCard_id}`,
           amount: toNumber(invoice.mechanicAmount) + toNumber(invoice.sparePartAmount),
           tax: 0,

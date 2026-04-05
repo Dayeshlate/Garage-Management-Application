@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Phone, Mail, MoreVertical, DollarSign } from 'lucide-react';
+import { Search, Phone, Mail, MoreVertical, DollarSign } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import { useSettings } from '@/context/SettingsContext';
 import { useCustomers, useUpdateCustomerCurrency } from '@/hooks/use-api';
@@ -122,16 +122,6 @@ export const Customers: React.FC = () => {
       ),
     },
     {
-      key: 'currency',
-      header: 'Currency',
-      render: (customer: Customer) => (
-        <div className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium text-foreground">{customer.currency}</span>
-        </div>
-      ),
-    },
-    {
       key: 'totalSpent',
       header: 'Total Spent',
       render: (customer: Customer) => (
@@ -171,10 +161,6 @@ export const Customers: React.FC = () => {
           <h1 className="page-title">Customers</h1>
           <p className="text-muted-foreground mt-1">Manage your customer database</p>
         </div>
-        <button className="btn-primary">
-          <Plus className="h-4 w-4" />
-          Add Customer
-        </button>
       </div>
 
       {/* Search and Filters */}
