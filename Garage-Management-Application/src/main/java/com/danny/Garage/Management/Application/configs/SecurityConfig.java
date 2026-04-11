@@ -2,6 +2,7 @@ package com.danny.Garage.Management.Application.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,9 +23,11 @@ import com.danny.Garage.Management.Application.utils.JwtFilter;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final String frontendUrl;
 
-    public SecurityConfig(JwtFilter jwtFilter) {
+    public SecurityConfig(JwtFilter jwtFilter, @Value("${frontend_url}") String frontendUrl) {
         this.jwtFilter = jwtFilter;
+        this.frontendUrl = frontendUrl;
     }
 
     @Bean
@@ -66,6 +69,7 @@ public class SecurityConfig {
 
         configuration.setAllowedOriginPatterns(
             java.util.List.of(
+                frontendUrl,
                 "http://localhost:*",
                 "http://127.0.0.1:*"));
 
