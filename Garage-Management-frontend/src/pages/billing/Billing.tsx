@@ -89,7 +89,7 @@ export const Billing: React.FC = () => {
           jobCard: `JC-${invoice.jobCard_id}`,
           vehicle: `${invoice.vehicleBrand || 'N/A'} ${invoice.vehicleModel || 'N/A'} (${invoice.vehicleNumber || 'N/A'})`,
           amount: toNumber(invoice.mechanicAmount) + toNumber(invoice.sparePartAmount),
-          tax: 0,
+          tax: toNumber(invoice.taxAmount),
           total: toNumber(invoice.totalBill),
           status: normalizeStatus(invoice.billStatus),
           dueDate: invoice.billDate,
@@ -281,7 +281,7 @@ export const Billing: React.FC = () => {
         columns={columns}
         data={filteredInvoices}
         emptyMessage="No invoices found"
-        onRowClick={setSelectedInvoice}
+        onRowClick={(invoice) => setSelectedInvoice(invoice as Invoice)}
       />
 
       {selectedInvoice && (

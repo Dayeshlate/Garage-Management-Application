@@ -49,7 +49,7 @@ export const MyInvoices: React.FC = () => {
         id: `INV-${invoice.id}`,
         rawId: Number(invoice.id),
         date: invoice.billDate,
-        vehicle: `Vehicle #${invoice.jobCard_id}`,
+        vehicle: `${invoice.vehicleBrand || 'N/A'} ${invoice.vehicleModel || 'N/A'} (${invoice.vehicleNumber || 'N/A'})`,
         service: `Job Card #${invoice.jobCard_id}`,
         mechanicAmount,
         sparePartAmount,

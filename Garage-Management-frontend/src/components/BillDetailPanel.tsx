@@ -136,7 +136,7 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
     onUpdate(invoice.id, { dueDate: editingDueDate });
     toast({
       title: 'Due date updated',
-      description: `Due date changed to ${new Date(editingDueDate).toLocaleDateString()}`,
+      description: `Due date changed to ${formatDate(editingDueDate)}`,
     });
   };
 
