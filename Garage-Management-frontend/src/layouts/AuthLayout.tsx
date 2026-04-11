@@ -4,6 +4,7 @@ import { Wrench } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 export const AuthLayout: React.FC = () => {
   const {
+    user,
     isAuthenticated,
     isLoading
   } = useAuth();
@@ -13,7 +14,8 @@ export const AuthLayout: React.FC = () => {
       </div>;
   }
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    const role = String(user?.role ?? 'USER').replace(/^ROLE_/i, '').toUpperCase();
+    return <Navigate to={role === 'ADMIN' ? '/dashboard' : '/my-dashboard'} replace />;
   }
   return <div className="min-h-screen bg-primary flex">
       {/* Left Panel - Branding */}

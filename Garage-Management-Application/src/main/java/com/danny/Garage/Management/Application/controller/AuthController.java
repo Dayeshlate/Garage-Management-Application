@@ -1,10 +1,12 @@
 package com.danny.Garage.Management.Application.controller;
 
 import java.util.Map;
+import java.net.URI;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.danny.Garage.Management.Application.dto.AuthDTO;
 import com.danny.Garage.Management.Application.dto.UserDTO;
@@ -16,6 +18,9 @@ import com.danny.Garage.Management.Application.service.UserService;
 public class AuthController {
 
     private final UserService userService;
+
+    @Value("${frontend_url}")
+    private String frontendUrl;
 
     public AuthController(UserService userService) {
         this.userService = userService;
@@ -41,17 +46,15 @@ public class AuthController {
     }
 
     @GetMapping("/activate")
-    public ResponseEntity<String> activateUser(@RequestParam String activationToken) {
+    public ResponseEntity<Void> activateUser(@RequestParam String activationToken) {
 
         boolean isActivated = userService.activateProfile(activationToken);
+        String redirectUrl = frontendUrl + "/login?activation=" + (isActivated ? "success" : "invalid");
 
-        if (isActivated) {
-            return ResponseEntity.ok("Account activated successfully");
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body("Activation token not found or already used");
-        }
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(URI.create(redirectUrl))
+                .build();
     }
 
     @PostMapping("/login")

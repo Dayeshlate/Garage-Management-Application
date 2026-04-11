@@ -41,6 +41,9 @@ public class UserService {
     @Value("${frontend_url}")
     private String activationUrl;
 
+    @Value("${backend_url:http://localhost:8080}")
+    private String backendUrl;
+
     public UserService(
             UserRepository userRepository,
             EmailService emailService,
@@ -67,7 +70,7 @@ public class UserService {
         User user = toEntity(dto, null);
         user.setActivationToken(UUID.randomUUID().toString());
         user.setIsActive(false);  
-        String activationLink = activationUrl+"/api/auth/activate?activationToken=" + user.getActivationToken();
+        String activationLink = backendUrl + "/api/auth/activate?activationToken=" + user.getActivationToken();
         String subject = "Activate your garage management application";
         String body = "Click on the following link to activate your account: " + activationLink;
 

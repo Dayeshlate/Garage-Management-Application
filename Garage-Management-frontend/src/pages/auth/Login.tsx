@@ -15,6 +15,17 @@ export const Login = React.forwardRef<HTMLDivElement>((_, ref) => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const applyDemoCredentials = (role: 'ADMIN' | 'USER') => {
+    if (role === 'ADMIN') {
+      setEmail('admin@garage.com');
+      setPassword('admin123');
+      return;
+    }
+
+    setEmail('user@garage.com');
+    setPassword('user123');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -60,6 +71,26 @@ export const Login = React.forwardRef<HTMLDivElement>((_, ref) => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="rounded-lg border border-border bg-muted/40 p-3">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Demo Account Selection</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => applyDemoCredentials('ADMIN')}
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              Use Admin Demo
+            </button>
+            <button
+              type="button"
+              onClick={() => applyDemoCredentials('USER')}
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              Use User Demo
+            </button>
+          </div>
+        </div>
+
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
             Email Address
