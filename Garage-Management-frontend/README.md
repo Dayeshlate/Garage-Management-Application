@@ -66,6 +66,24 @@ This project is built with:
 
 You can deploy this project using various hosting platforms like Vercel, Netlify, or your own server. For detailed deployment instructions, refer to your chosen platform's documentation.
 
+### Deploy on Vercel
+
+1. Import this repository in Vercel.
+2. Set the project root directory to `Garage-Management-frontend`.
+3. Build settings:
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+4. Add environment variable in Vercel project settings:
+   - `VITE_API_URL=https://<your-backend-domain>`
+5. Deploy.
+
+This project includes `vercel.json` with a rewrite to `index.html` so React Router routes work on refresh/direct links.
+
+Important backend setting for CORS and email links:
+
+- In backend env (`Garage-Management-Application/.env`), set:
+  - `FRONTEND_URL=https://<your-vercel-domain>`
+
 ## Features
 
 - Vehicle management and tracking
