@@ -57,7 +57,7 @@ public class JobCard {
     @Column(nullable=false)
     private LocalDateTime onCreate;
 
-    @Column(columnDefinition = "DECIMAL(10,2) DEFAULT 0")
+    @Column(precision = 10, scale = 2)
     private java.math.BigDecimal mechanicCharge;
 
     @ManyToMany(fetch = FetchType.LAZY,cascade = { CascadeType.PERSIST, CascadeType.MERGE })
@@ -68,6 +68,9 @@ public class JobCard {
     @PrePersist
     protected void onCreate(){
         this.onCreate = LocalDateTime.now();
+        if (this.mechanicCharge == null) {
+            this.mechanicCharge = java.math.BigDecimal.ZERO;
+        }
     }
 
 
