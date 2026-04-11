@@ -1,5 +1,6 @@
 package com.danny.Garage.Management.Application.dto;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.danny.Garage.Management.Application.entity.JobStatus;
@@ -26,6 +27,9 @@ public class JobCardDTO {
     private String ownerName;
     private String ownerPhone;
     private String ownerEmail;
+
+    private LocalDateTime onCreate;
+    private LocalDateTime expectedTime;
 
     private Set<Long> SparePart_id;
 

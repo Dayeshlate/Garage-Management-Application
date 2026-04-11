@@ -175,6 +175,9 @@ public class BillService {
         }
 
         String customerName = null;
+        String vehicleNumber = null;
+        String vehicleBrand = null;
+        String vehicleModel = null;
         if (entity.getJobCard() != null && entity.getJobCard().getVehicle() != null) {
             var vehicle = entity.getJobCard().getVehicle();
             if (vehicle.getUser() != null && vehicle.getUser().getName() != null && !vehicle.getUser().getName().isBlank()) {
@@ -182,6 +185,9 @@ public class BillService {
             } else {
                 customerName = vehicle.getOwnerName();
             }
+            vehicleNumber = vehicle.getVehicleNumber();
+            vehicleBrand = vehicle.getBrand();
+            vehicleModel = vehicle.getModel();
         }
 
         return BillDTO.builder()
@@ -197,6 +203,9 @@ public class BillService {
             .discountAmount(discountAmount)
                 .currency(entity.getCurrency())
                 .customerName(customerName)
+                .vehicleNumber(vehicleNumber)
+                .vehicleBrand(vehicleBrand)
+                .vehicleModel(vehicleModel)
                 .jobCard_id(entity.getJobCard() != null
                         ? entity.getJobCard().getId()
                         : null)

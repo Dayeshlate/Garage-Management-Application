@@ -8,6 +8,9 @@ export interface InvoiceDTO {
   id: number;
   billDate: string;
   customerName?: string;
+  vehicleNumber?: string;
+  vehicleBrand?: string;
+  vehicleModel?: string;
   mechanicAmount: number;
   sparePartAmount: number;
   subtotal?: number;

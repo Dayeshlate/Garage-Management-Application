@@ -12,6 +12,7 @@ interface Invoice {
   invoiceNumber: string;
   customer: string;
   jobCard: string;
+  vehicle: string;
   amount: number;
   tax: number;
   total: number;
@@ -49,6 +50,21 @@ const toNumber = (value: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const formatDate = (value?: string): string => {
+  if (!value) {
+    return 'N/A';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 10);
+  }
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+};
+
 export const Billing: React.FC = () => {
   const { formatCurrency } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,6 +87,7 @@ export const Billing: React.FC = () => {
           invoiceNumber: `INV-${invoice.id}`,
           customer: invoice.customerName?.trim() || `Customer #${invoice.jobCard_id}`,
           jobCard: `JC-${invoice.jobCard_id}`,
+          vehicle: `${invoice.vehicleBrand || 'N/A'} ${invoice.vehicleModel || 'N/A'} (${invoice.vehicleNumber || 'N/A'})`,
           amount: toNumber(invoice.mechanicAmount) + toNumber(invoice.sparePartAmount),
           tax: 0,
           total: toNumber(invoice.totalBill),
@@ -129,7 +146,8 @@ export const Billing: React.FC = () => {
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch =
       invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.customer.toLowerCase().includes(searchTerm.toLowerCase());
+      invoice.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.vehicle.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -156,9 +174,12 @@ export const Billing: React.FC = () => {
     },
     {
       key: 'customer',
-      header: 'Customer',
+      header: 'Customer / Vehicle',
       render: (invoice: Invoice) => (
-        <span className="font-medium text-foreground">{invoice.customer}</span>
+        <div>
+          <p className="font-medium text-foreground">{invoice.customer}</p>
+          <p className="text-sm text-muted-foreground">{invoice.vehicle}</p>
+        </div>
       ),
     },
     {
@@ -190,7 +211,7 @@ export const Billing: React.FC = () => {
       header: 'Date',
       render: (invoice: Invoice) => (
         <span className="text-muted-foreground">
-          {new Date(invoice.dueDate).toLocaleDateString()}
+          {formatDate(invoice.dueDate)}
         </span>
       ),
     },

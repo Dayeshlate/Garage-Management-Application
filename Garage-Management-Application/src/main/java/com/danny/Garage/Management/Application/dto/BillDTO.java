@@ -41,4 +41,10 @@ public class BillDTO {
 
     private String customerName;
 
+    private String vehicleNumber;
+
+    private String vehicleBrand;
+
+    private String vehicleModel;
+
 }

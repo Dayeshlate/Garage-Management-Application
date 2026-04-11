@@ -3,7 +3,7 @@ import { Search, Filter, Clock, DollarSign } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import { StatusBadge, StatusType } from '@/components/StatusBadge';
 import { JobCardDetailPanel, type JobCardDetail } from '@/components/JobCardDetailPanel';
-import { useJobCards, useUpdateJobCard } from '@/hooks/use-api';
+import { useJobCards, useUpdateJobCard, useVehicles } from '@/hooks/use-api';
 import { useInventory } from '@/hooks/use-api';
 import { toast } from '@/hooks/use-toast';
 
@@ -32,6 +32,13 @@ const mapStatus = (status: string): StatusType => {
   return 'pending';
 };
 
+const toDateInput = (value?: string): string => {
+  if (!value) {
+    return new Date().toISOString().split('T')[0];
+  }
+  return value.slice(0, 10);
+};
+
 export const JobCards: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusType | 'all'>('all');
@@ -39,7 +46,16 @@ export const JobCards: React.FC = () => {
   const updateJobCard = useUpdateJobCard();
 
   const { data, isLoading, error, refetch } = useJobCards();
+  const { data: vehiclesData = [] } = useVehicles();
   const { data: inventoryData = [] } = useInventory();
+
+  const vehicleById = useMemo(
+    () =>
+      Object.fromEntries(
+        vehiclesData.map((vehicle: any) => [Number(vehicle?.id), vehicle])
+      ),
+    [vehiclesData]
+  );
 
   const inventoryById = useMemo(
     () =>
@@ -132,6 +148,11 @@ export const JobCards: React.FC = () => {
       .slice()
       .sort((a, b) => Number(b.id) - Number(a.id))
       .map((job) => {
+        const vehicleId = Number(job.vehicle_id ?? job.Vehicle_id);
+        const linkedVehicle = vehicleById[vehicleId] as any;
+        const vehicleBrand = job.vehicleBrand ?? linkedVehicle?.brand;
+        const vehicleModel = job.vehicleModel ?? linkedVehicle?.model;
+        const vehicleNumber = job.vehicleNumber ?? linkedVehicle?.vehicleNumber;
         const constPartIds = (job.sparePart_id ?? job.SparePart_id ?? []).map((id) => Number(id));
         const constPartNames = job.sparePartNames ?? constPartIds.map((id) => inventoryById[id]?.name ?? `Part #${id}`);
         const constParts = constPartIds.map((id) => ({
@@ -143,21 +164,21 @@ export const JobCards: React.FC = () => {
         return {
           id: String(job.id),
           jobNumber: `JC-${job.id}`,
-          customer: job.ownerName || `Customer #${job.vehicle_id ?? job.Vehicle_id ?? 'N/A'}`,
-          vehicle: `${job.vehicleBrand || 'N/A'} ${job.vehicleModel || 'N/A'} (${job.vehicleNumber || 'N/A'})`,
+          customer: job.ownerName || linkedVehicle?.ownerName || `Customer #${job.vehicle_id ?? job.Vehicle_id ?? 'N/A'}`,
+          vehicle: `${vehicleBrand || 'N/A'} ${vehicleModel || 'N/A'} (${vehicleNumber || 'N/A'})`,
           services: constPartNames.length > 0 ? constPartNames : ['No spare parts'],
           status: mapStatus(job.jobStatus ?? job.JobStatus ?? 'ARRIVED'),
           estimatedCost: 0,
           mechanicCharge: job.mechanicCharge,
           assignedTo: job.ownerPhone || 'N/A',
-          createdAt: new Date().toISOString().split('T')[0],
-          dueDate: new Date().toISOString().split('T')[0],
+          createdAt: toDateInput(job.onCreate),
+          dueDate: toDateInput(job.expectedTime ?? job.onCreate),
           sparePartIds: constPartIds,
           sparePartNames: constPartNames,
           spareParts: constParts,
         };
       }),
-    [data, inventoryById]
+    [data, inventoryById, vehicleById]
   );
 
   const filteredJobCards = jobCards.filter((job) => {

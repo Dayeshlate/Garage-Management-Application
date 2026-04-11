@@ -18,6 +18,7 @@ interface Vehicle {
   totalServices: number;
   status: 'pending' | 'approved' | 'rejected';
   submittedAt?: string;
+  jobCardNumber?: string;
 }
 
 interface VehicleDetailPanelProps {
@@ -175,6 +176,16 @@ export const VehicleDetailPanel: React.FC<VehicleDetailPanelProps> = ({
               <input
                 type="text"
                 value={vehicle.licensePlate}
+                disabled
+                className="input-field bg-muted text-muted-foreground"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Job Card Number</label>
+              <input
+                type="text"
+                value={vehicle.jobCardNumber || 'Not generated yet'}
                 disabled
                 className="input-field bg-muted text-muted-foreground"
               />

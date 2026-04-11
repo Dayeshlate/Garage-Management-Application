@@ -5,7 +5,7 @@ import { AddVehicleDialog } from '@/components/AddVehicleDialog';
 import { VehicleDetailPanel } from '@/components/VehicleDetailPanel';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useCreateVehicle, usePendingVehicles, useVehicles } from '@/hooks/use-api';
+import { useCreateVehicle, useJobCards, usePendingVehicles, useVehicles } from '@/hooks/use-api';
 import type { CreateVehicleDto } from '@/api/vehicles';
 import { vehiclesApi } from '@/api/vehicles';
 
@@ -23,6 +23,7 @@ interface Vehicle {
   totalServices: number;
   status: 'pending' | 'approved' | 'rejected';
   submittedAt?: string;
+  jobCardNumber?: string;
 }
 
 export const Vehicles: React.FC = () => {
@@ -33,13 +34,32 @@ export const Vehicles: React.FC = () => {
 
   const { data: allVehiclesData, isLoading: isLoadingVehicles, error: vehiclesError, refetch: refetchVehicles } = useVehicles();
   const { data: pendingVehiclesData, isLoading: isLoadingPending, error: pendingError, refetch: refetchPending } = usePendingVehicles();
+  const { data: jobCardsData = [] } = useJobCards();
   const createVehicle = useCreateVehicle();
+
+  const latestJobCardByVehicleId = useMemo(() => {
+    const map = new Map<number, { id: number }>();
+    for (const job of jobCardsData) {
+      const vehicleId = Number(job.vehicle_id ?? job.Vehicle_id);
+      if (!Number.isFinite(vehicleId)) {
+        continue;
+      }
+      const current = map.get(vehicleId);
+      if (!current || Number(job.id) > current.id) {
+        map.set(vehicleId, { id: Number(job.id) });
+      }
+    }
+    return map;
+  }, [jobCardsData]);
 
   const mapVehicle = (vehicle: any): Vehicle => {
     const modelText = vehicle?.model ?? '';
     const yearCandidate = Number(String(modelText).match(/\d{4}/)?.[0]);
     const year = Number.isFinite(yearCandidate) ? yearCandidate : new Date().getFullYear();
     const status = vehicle?.vehicleStatus === 'PENDING' ? 'pending' : 'approved';
+    const vehicleId = Number(vehicle?.id);
+    const linkedJobCard = Number.isFinite(vehicleId) ? latestJobCardByVehicleId.get(vehicleId) : undefined;
+    const totalServices = jobCardsData.filter((job) => Number(job.vehicle_id ?? job.Vehicle_id) === vehicleId).length;
 
     return {
       id: String(vehicle?.id),
@@ -52,9 +72,10 @@ export const Vehicles: React.FC = () => {
       ownerEmail: vehicle?.ownerEmail ?? vehicle?.userEmail,
       ownerPhone: vehicle?.ownerPhone ?? '',
       lastService: vehicle?.deliveryTime ?? vehicle?.expectedTime ?? vehicle?.arrivalTime ?? '',
-      totalServices: 0,
+      totalServices,
       status,
       submittedAt: vehicle?.arrivalTime ?? '',
+      jobCardNumber: linkedJobCard ? `JC-${linkedJobCard.id}` : undefined,
     };
   };
 
@@ -64,11 +85,11 @@ export const Vehicles: React.FC = () => {
         .map(mapVehicle)
         .filter((v) => v.status !== 'pending')
         .sort((a, b) => Number(b.id) - Number(a.id)),
-    [allVehiclesData]
+    [allVehiclesData, latestJobCardByVehicleId, jobCardsData]
   );
   const pendingVehicles = useMemo(
     () => (pendingVehiclesData ?? []).map(mapVehicle).sort((a, b) => Number(b.id) - Number(a.id)),
-    [pendingVehiclesData]
+    [pendingVehiclesData, latestJobCardByVehicleId, jobCardsData]
   );
 
   const handleAddVehicle = async (vehicle: CreateVehicleDto) => {
@@ -162,6 +183,11 @@ export const Vehicles: React.FC = () => {
       key: 'owner',
       header: 'Owner',
       render: (vehicle: Vehicle) => <span className="text-foreground">{vehicle.owner}</span>,
+    },
+    {
+      key: 'jobCardNumber',
+      header: 'Job Card',
+      render: (vehicle: Vehicle) => <span className="font-mono text-accent">{vehicle.jobCardNumber ?? 'N/A'}</span>,
     },
     {
       key: 'lastService',

@@ -15,6 +15,8 @@ export interface JobCardDTO {
   ownerName?: string;
   ownerPhone?: string;
   ownerEmail?: string;
+  onCreate?: string;
+  expectedTime?: string;
   sparePart_id?: number[];
   SparePart_id?: number[];
   sparePartNames?: string[];
@@ -110,6 +112,8 @@ const normalizeJobCard = (raw: any): JobCardDTO => ({
   ownerName: raw?.ownerName,
   ownerPhone: raw?.ownerPhone,
   ownerEmail: raw?.ownerEmail,
+  onCreate: raw?.onCreate,
+  expectedTime: raw?.expectedTime,
   sparePart_id: raw?.sparePart_id ?? raw?.SparePart_id,
   SparePart_id: raw?.SparePart_id ?? raw?.sparePart_id,
   sparePartNames: raw?.sparePartNames ?? raw?.SparePartNames,

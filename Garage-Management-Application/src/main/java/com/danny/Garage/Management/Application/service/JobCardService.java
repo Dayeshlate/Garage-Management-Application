@@ -241,6 +241,8 @@ public class JobCardService {
                 .ownerName(vehicle.getOwnerName())
                 .ownerPhone(vehicle.getOwnerPhone())
                 .ownerEmail(vehicle.getOwnerEmail())
+            .onCreate(entity.getOnCreate())
+            .expectedTime(vehicle.getExpectedTime())
                 .JobStatus(entity.getJobStatus())
                 .mechanicCharge(entity.getMechanicCharge() != null ? entity.getMechanicCharge().doubleValue() : 0.0)
                 .SparePart_id(

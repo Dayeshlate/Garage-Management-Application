@@ -13,6 +13,7 @@ interface Invoice {
   invoiceNumber: string;
   customer: string;
   jobCard: string;
+  vehicle: string;
   amount: number;
   tax: number;
   total: number;
@@ -54,6 +55,21 @@ const toSafeStatus = (value: unknown): PaymentStatus => {
     return value;
   }
   return 'pending';
+};
+
+const formatDate = (value?: string): string => {
+  if (!value) {
+    return '';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 10);
+  }
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
 };
 
 export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
@@ -204,7 +220,7 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
                 <div className="bg-status-completed/10 rounded-lg p-3 flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-status-completed" />
                   <p className="text-sm text-status-completed">
-                    Paid on {new Date(invoice.paidAt).toLocaleDateString()}
+                    Paid on {formatDate(invoice.paidAt)}
                   </p>
                 </div>
               )}
@@ -224,6 +240,15 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
                 <input
                   type="text"
                   value={invoice.customer ?? ''}
+                  disabled
+                  className="input-field bg-muted text-muted-foreground"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Vehicle</label>
+                <input
+                  type="text"
+                  value={invoice.vehicle ?? ''}
                   disabled
                   className="input-field bg-muted text-muted-foreground"
                 />
@@ -254,7 +279,7 @@ export const BillDetailPanel: React.FC<BillDetailPanelProps> = ({
               <label className="text-sm font-medium text-foreground">Created</label>
               <input
                 type="text"
-                value={invoice.createdAt ? new Date(invoice.createdAt).toLocaleDateString() : ''}
+                value={formatDate(invoice.createdAt)}
                 disabled
                 className="input-field bg-muted text-muted-foreground"
               />
