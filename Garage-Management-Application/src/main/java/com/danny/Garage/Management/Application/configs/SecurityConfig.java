@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpMethod;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.danny.Garage.Management.Application.utils.JwtFilter;
 
@@ -67,19 +69,24 @@ public class SecurityConfig {
 
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(
-            java.util.List.of(
-                frontendUrl,
-                "http://localhost:*",
-                "http://127.0.0.1:*"));
+        List<String> allowedOriginPatterns = new ArrayList<>();
+        if (frontendUrl != null && !frontendUrl.isBlank()) {
+            allowedOriginPatterns.add(frontendUrl.trim());
+        }
+        allowedOriginPatterns.add("http://localhost:*");
+        allowedOriginPatterns.add("http://127.0.0.1:*");
+        allowedOriginPatterns.add("https://*");
+
+        configuration.setAllowedOriginPatterns(allowedOriginPatterns);
 
         configuration.setAllowedMethods(
-                java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         configuration.setAllowedHeaders(
                 java.util.List.of("*"));
 
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(3600L);
 
         org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
 
