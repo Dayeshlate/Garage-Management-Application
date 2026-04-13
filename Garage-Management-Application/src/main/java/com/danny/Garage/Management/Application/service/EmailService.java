@@ -17,19 +17,30 @@ public class EmailService {
     @Value("${spring.mail.properties.mail.smtp.from}")
     private String fromEmail;
 
+    @Value("${spring.mail.username}")
+    private String mailUsername;
+
     public void sendEmail(String to, String subject, String body){
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(fromEmail);
+            helper.setFrom(resolveFromAddress());
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(body, true); 
+            helper.setText(body, false);
 
             mailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException("Failed to send activation email: " + e.getMessage(), e);
         }
+    }
+
+    private String resolveFromAddress() {
+        if (fromEmail != null && !fromEmail.isBlank()) {
+            return fromEmail.trim();
+        }
+
+        return mailUsername;
     }
 }
