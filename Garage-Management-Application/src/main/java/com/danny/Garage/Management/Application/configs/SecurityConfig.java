@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,12 +52,26 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/auth/activate").permitAll()
+                    .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/user/**").authenticated()
                     .requestMatchers("/admin/jobcard/**").authenticated()
                     .requestMatchers(HttpMethod.GET, "/admin/SparePart/getAll").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        response.setStatus(401);
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        response.getWriter().write("{\"message\":\"Unauthorized\",\"path\":\"" + request.getRequestURI() + "\"}");
+                    })
+                    .accessDeniedHandler((request, response, accessDeniedException) -> {
+                        response.setStatus(403);
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        response.getWriter().write("{\"message\":\"Access denied\",\"path\":\"" + request.getRequestURI() + "\"}");
+                    })
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter,
                         UsernamePasswordAuthenticationFilter.class);
