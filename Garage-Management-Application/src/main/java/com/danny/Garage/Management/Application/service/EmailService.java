@@ -28,7 +28,7 @@ public class EmailService {
             helper.setFrom(resolveFromAddress());
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(body, false);
+            helper.setText(body, true); 
 
             mailSender.send(message);
         } catch (Exception e) {
