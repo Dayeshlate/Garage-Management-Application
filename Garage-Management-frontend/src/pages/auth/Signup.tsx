@@ -36,8 +36,12 @@ export const Signup = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
 
     setIsSubmitting(true);
-    const success = await signup(name, email, phone, password);
-    setIsSubmitting(false);
+    let success = false;
+    try {
+      success = await signup(name, email, phone, password);
+    } finally {
+      setIsSubmitting(false);
+    }
 
     if (success) {
       toast.success('Account submitted for approval! You will be notified once verified.', { id: SIGNUP_TOAST_ID });
