@@ -7,6 +7,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,6 +32,8 @@ import com.danny.Garage.Management.Application.utils.JwtUtils;
 @Service
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     private static final Set<String> SUPPORTED_CURRENCIES = Set.of("USD", "EUR", "GBP", "INR");
 
     private final UserRepository userRepository;
@@ -41,7 +46,7 @@ public class UserService {
     @Value("${frontend_url}")
     private String activationUrl;
 
-    @Value("${backend_url:http://localhost:8080}")
+    @Value("${backend_url}")
     private String backendUrl;
 
     public UserService(
@@ -70,12 +75,19 @@ public class UserService {
         User user = toEntity(dto, null);
         user.setActivationToken(UUID.randomUUID().toString());
         user.setIsActive(false);  
+        User savedUser = userRepository.save(user);
+
         String activationLink = backendUrl + "/api/auth/activate?activationToken=" + user.getActivationToken();
         String subject = "Activate your garage management application";
         String body = "Click on the following link to activate your account: " + activationLink;
 
-        emailService.sendEmail(user.getEmail(), subject, body);
-        return userRepository.save(user);
+        try {
+            emailService.sendEmail(savedUser.getEmail(), subject, body);
+        } catch (RuntimeException ex) {
+            log.warn("User {} saved but activation email could not be sent: {}", savedUser.getEmail(), ex.getMessage());
+        }
+
+        return savedUser;
     }
 
     public boolean activateProfile(String activationToken) {
