@@ -29,6 +29,12 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/api/auth/") || "OPTIONS".equalsIgnoreCase(request.getMethod());
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
@@ -50,25 +56,28 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (username != null &&
             SecurityContextHolder.getContext().getAuthentication() == null) {
-
+            try {
             UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(username);
+                userDetailsService.loadUserByUsername(username);
 
             if (jwt != null && jwtUtils.validateToken(jwt, userDetails)) {
 
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                    new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                    );
 
                 authToken.setDetails(
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request));
+                    new WebAuthenticationDetailsSource()
+                        .buildDetails(request));
 
                 SecurityContextHolder.getContext()
-                        .setAuthentication(authToken);
+                    .setAuthentication(authToken);
+            }
+            } catch (Exception ignored) {
+            // Ignore invalid or stale token and continue as unauthenticated.
             }
         }
 
