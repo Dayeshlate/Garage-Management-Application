@@ -50,7 +50,12 @@ export const MyVehicles: React.FC = () => {
         owner: vehicle.ownerName ?? vehicle.userEmail ?? 'Unknown',
         lastService: vehicle.deliveryTime ?? '',
         totalServices: 0,
-        status: vehicle.vehicleStatus === 'PENDING' ? 'pending' : 'approved',
+        status:
+          String(vehicle.vehicleStatus ?? '').toUpperCase() === 'PENDING'
+            ? 'pending'
+            : String(vehicle.vehicleStatus ?? '').toUpperCase() === 'REJECTED'
+            ? 'rejected'
+            : 'approved',
       })),
     [data]
   );
@@ -85,7 +90,7 @@ export const MyVehicles: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">Total Vehicles</p>
           <p className="text-2xl font-bold text-foreground mt-1">{vehicles.length}</p>
@@ -100,6 +105,12 @@ export const MyVehicles: React.FC = () => {
           <p className="text-sm text-muted-foreground">Pending Approval</p>
           <p className="text-2xl font-bold text-foreground mt-1">
             {vehicles.filter(v => v.status === 'pending').length}
+          </p>
+        </div>
+        <div className="bg-card rounded-xl p-4 border border-destructive/30">
+          <p className="text-sm text-muted-foreground">Rejected</p>
+          <p className="text-2xl font-bold text-destructive mt-1">
+            {vehicles.filter(v => v.status === 'rejected').length}
           </p>
         </div>
       </div>

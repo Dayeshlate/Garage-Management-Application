@@ -56,7 +56,13 @@ export const Vehicles: React.FC = () => {
     const modelText = vehicle?.model ?? '';
     const yearCandidate = Number(String(modelText).match(/\d{4}/)?.[0]);
     const year = Number.isFinite(yearCandidate) ? yearCandidate : new Date().getFullYear();
-    const status = vehicle?.vehicleStatus === 'PENDING' ? 'pending' : 'approved';
+    const backendStatus = String(vehicle?.vehicleStatus ?? '').toUpperCase();
+    const status: Vehicle['status'] =
+      backendStatus === 'PENDING'
+        ? 'pending'
+        : backendStatus === 'REJECTED'
+        ? 'rejected'
+        : 'approved';
     const vehicleId = Number(vehicle?.id);
     const linkedJobCard = Number.isFinite(vehicleId) ? latestJobCardByVehicleId.get(vehicleId) : undefined;
     const totalServices = jobCardsData.filter((job) => Number(job.vehicle_id ?? job.Vehicle_id) === vehicleId).length;
@@ -87,6 +93,8 @@ export const Vehicles: React.FC = () => {
         .sort((a, b) => Number(b.id) - Number(a.id)),
     [allVehiclesData, latestJobCardByVehicleId, jobCardsData]
   );
+  const approvedVehicles = useMemo(() => vehicles.filter((v) => v.status === 'approved'), [vehicles]);
+  const rejectedVehicles = useMemo(() => vehicles.filter((v) => v.status === 'rejected'), [vehicles]);
   const pendingVehicles = useMemo(
     () => (pendingVehiclesData ?? []).map(mapVehicle).sort((a, b) => Number(b.id) - Number(a.id)),
     [pendingVehiclesData, latestJobCardByVehicleId, jobCardsData]
@@ -136,7 +144,15 @@ export const Vehicles: React.FC = () => {
     }
   };
 
-  const filteredVehicles = vehicles.filter(
+  const filteredApproved = approvedVehicles.filter(
+    (vehicle) =>
+      vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.owner.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredRejected = rejectedVehicles.filter(
     (vehicle) =>
       vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
       vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -287,28 +303,31 @@ export const Vehicles: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">Approved Vehicles</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{vehicles.length}</p>
+          <p className="text-2xl font-bold text-foreground mt-1">{approvedVehicles.length}</p>
         </div>
         <div className="bg-card rounded-xl p-4 border border-yellow-500/30">
           <p className="text-sm text-muted-foreground">Pending Approval</p>
           <p className="text-2xl font-bold text-yellow-600 mt-1">{pendingVehicles.length}</p>
         </div>
+        <div className="bg-card rounded-xl p-4 border border-destructive/30">
+          <p className="text-sm text-muted-foreground">Rejected Vehicles</p>
+          <p className="text-2xl font-bold text-destructive mt-1">{rejectedVehicles.length}</p>
+        </div>
         <div className="bg-card rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">Total Services</p>
           <p className="text-2xl font-bold text-foreground mt-1">
-            {vehicles.reduce((sum, v) => sum + v.totalServices, 0)}
+            {approvedVehicles.reduce((sum, v) => sum + v.totalServices, 0)}
           </p>
-        </div>
-        <div className="bg-card rounded-xl p-4 border border-border">
-          <p className="text-sm text-muted-foreground">This Month</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{vehicles.length + pendingVehicles.length}</p>
         </div>
       </div>
 
       <Tabs defaultValue="approved" className="space-y-4">
         <TabsList>
           <TabsTrigger value="approved">
-            Approved ({vehicles.length})
+            Approved ({approvedVehicles.length})
+          </TabsTrigger>
+          <TabsTrigger value="rejected">
+            Rejected ({rejectedVehicles.length})
           </TabsTrigger>
           <TabsTrigger value="pending" className="relative">
             Pending ({pendingVehicles.length})
@@ -323,8 +342,17 @@ export const Vehicles: React.FC = () => {
         <TabsContent value="approved">
           <DataTable
             columns={approvedColumns}
-            data={filteredVehicles}
+            data={filteredApproved}
             emptyMessage="No approved vehicles found"
+            onRowClick={setViewVehicle}
+          />
+        </TabsContent>
+
+        <TabsContent value="rejected">
+          <DataTable
+            columns={approvedColumns}
+            data={filteredRejected}
+            emptyMessage="No rejected vehicles found"
             onRowClick={setViewVehicle}
           />
         </TabsContent>

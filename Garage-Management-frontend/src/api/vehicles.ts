@@ -1,7 +1,7 @@
 import { apiClient } from './config';
 import { ApiError } from './config';
 
-export type VehicleStatus = 'PENDING' | 'IN_SERVICE' | 'COMPLETED' | 'DELIVERED' | 'CANCELLED';
+export type VehicleStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type ServiceType = 'GENERAL_SERVICE' | 'REPAIR' | 'BODY_WORK' | 'ELECTRICAL' | 'AC_SERVICE' | 'WASHING';
 
 export interface VehicleDTO {
