@@ -14,12 +14,17 @@ interface User {
   taxRate?: number;
 }
 
+interface SignupResult {
+  success: boolean;
+  message?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  signup: (name: string, email: string, phone: string, password: string) => Promise<boolean>;
+  signup: (name: string, email: string, phone: string, password: string) => Promise<SignupResult>;
   logout: () => void;
 }
 
@@ -166,14 +171,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signup = async (name: string, email: string, phone: string, password: string): Promise<boolean> => {
+  const signup = async (name: string, email: string, phone: string, password: string): Promise<SignupResult> => {
     setIsLoading(true);
     try {
       await authApi.signup({ name, email, phone, password });
-      return true;
+      return { success: true, message: 'Account created successfully!' };
     } catch (error) {
-      console.error('Signup error:', getAuthErrorMessage(error, 'Signup'));
-      return false;
+      let errorMessage = getAuthErrorMessage(error, 'Signup');
+      
+      // Extract specific error message from backend response
+      if (error instanceof ApiError && error.message) {
+        errorMessage = error.message;
+      }
+      
+      console.error('Signup error:', errorMessage);
+      return { success: false, message: errorMessage };
     } finally {
       setIsLoading(false);
     }

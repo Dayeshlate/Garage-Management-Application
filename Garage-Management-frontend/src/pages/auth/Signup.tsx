@@ -36,18 +36,18 @@ export const Signup = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
 
     setIsSubmitting(true);
-    let success = false;
+    let result: { success: boolean; message?: string } = { success: false, message: 'Signup failed' };
     try {
-      success = await signup(name, email, phone, password);
+      result = await signup(name, email, phone, password);
     } finally {
       setIsSubmitting(false);
     }
 
-    if (success) {
+    if (result.success) {
       toast.success('Account submitted for approval! You will be notified once verified.', { id: SIGNUP_TOAST_ID });
       navigate('/login');
     } else {
-      toast.error('Signup failed. Check backend /api/auth/register and API URL.', { id: SIGNUP_TOAST_ID });
+      toast.error(result.message || 'Signup failed. Check backend /api/auth/register and API URL.', { id: SIGNUP_TOAST_ID });
     }
   };
 
