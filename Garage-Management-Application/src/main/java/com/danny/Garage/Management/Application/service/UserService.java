@@ -76,11 +76,8 @@ public class UserService {
         String subject = "Activate your garage management application";
         String body = "Click on the following link to activate your account: " + activationLink;
 
-        try {
-            emailService.sendEmail(savedUser.getEmail(), subject, body);
-        } catch (RuntimeException ex) {
-            throw ex;
-        }
+        // Send email asynchronously to prevent request timeout
+        emailService.sendEmailAsync(savedUser.getEmail(), subject, body);
 
         return savedUser;
     }

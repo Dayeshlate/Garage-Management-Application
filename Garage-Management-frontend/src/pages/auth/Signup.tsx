@@ -70,7 +70,7 @@ export const Signup = React.forwardRef<HTMLDivElement>((_, ref) => {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="John Smith"
+            placeholder="your name"
             className="input-field"
             autoComplete="name"
           />
@@ -85,7 +85,7 @@ export const Signup = React.forwardRef<HTMLDivElement>((_, ref) => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="john@example.com"
+            placeholder="yourmail@example.com"
             className="input-field"
             autoComplete="email"
           />
