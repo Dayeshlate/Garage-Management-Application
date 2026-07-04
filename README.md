@@ -2,6 +2,9 @@
 
 A full-stack garage management system — track vehicles coming in for service, manage job cards, keep tabs on spare parts inventory, and generate bills. Built with Spring Boot on the backend and React (Vite + TypeScript) on the frontend.
 
+##Live
+https://garage-management-application.vercel.app
+
 ## How it works
 
 A customer signs up, verifies their email, and submits a vehicle for service. An admin approves or rejects the request. Once approved, a job card gets opened and moves through a few stages (arrived, in service, waiting for parts, completed, delivered). Mechanics attach the parts used and their charges. At the end a bill is generated and can be marked paid.
@@ -95,11 +98,5 @@ Admin (`/admin`): vehicle approval, job card management, bill status updates, sp
 
 These are hardcoded on the frontend for quick demos. Point `VITE_API_URL` at a real backend and it switches to actual login.
 
-## Things I'd still fix
-
-- Docker Compose vs application.properties DB mismatch (mentioned above)
-- Not all controllers follow the same `/api` prefix convention
-- No pagination yet on list endpoints
-
 ---
-Built by Dayesh Late (Lokesh). Portfolio: dayeshlate-portfolio.vercel.app
+Built by Dayesh Late. Portfolio: dayeshlate-portfolio.vercel.app
